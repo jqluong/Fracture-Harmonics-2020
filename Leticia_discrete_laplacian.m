@@ -2,7 +2,7 @@
 % function laplacian = discrete_laplacian(f,x)
 %
 % This function takes the discrete laplacian of a function f using the
-% finite difference method
+% finite difference method. Note: disregard endpoints for now
 %
 % paramaters: f - array of values f_n i.e. values of f at each x_n
 %             x - array of values x_n that determine step size
@@ -46,10 +46,12 @@ end
 
 % fill matrix L
 for i = 2:n-1
-    L(i,i-1) = 1/( ( x(i) - x(i-1) )*z(i) ); 
-    L(i,i+1) = 1/( ( x(i+1) - x(i) )*z(i) ); 
+    L(i,i-1) = (( lcm(sym(x(i) - x(i-1)),sym(x(i+1) - x(i))) ) / ( x(i) - x(i-1) ) ) / ( ( lcm(sym(x(i) - x(i-1)),sym(x(i+1) - x(i))) )*z(i) ); 
+    L(i,i+1) = (( lcm(sym(x(i) - x(i-1)),sym(x(i+1) - x(i))) ) / ( x(i+1) - x(i) ) ) /( ( lcm(sym(x(i) - x(i-1)),sym(x(i+1) - x(i))) )*z(i) ); 
     L(i,i) = - L(i,i+1)  - L(i,i-1);
 end
+% disregard endpoints (endpoints will be taken care of by boundary
+% conditions)
 for i = 1
     L(i,i)= 1/( ( x(i+1) - x(i) )*z(i) );
     L(i,i+1) = -1/( ( x(i+1) - x(i) )*z(i) );
