@@ -48,9 +48,9 @@ y(n-2)=-b;
 
 % fill matrix L
 for i = 2:n-1
-    L(i,i-1) = 1; 
-    L(i,i+1) = 1; 
-    L(i,i) = -2;
+    L(i,i-1) = ( lcm(sym(x(i) - x(i-1)),sym(x(i+1) - x(i))) ) / ( x(i) - x(i-1) ) ; 
+    L(i,i+1) = ( lcm(sym(x(i) - x(i-1)),sym(x(i+1) - x(i))) ) / ( x(i+1) - x(i) ) ; 
+    L(i,i) = - L(i,i+1)  - L(i,i-1);
 end
 
 % fill matrix M
