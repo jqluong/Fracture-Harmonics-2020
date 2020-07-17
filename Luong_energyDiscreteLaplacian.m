@@ -47,3 +47,5 @@ function derivativeMatrix = buildDerivative(f, stepsize)
     end
     derivativeMatrix = stepMatrix * derivativeMatrix;
 end
+
+%Testing how github works with a comment
