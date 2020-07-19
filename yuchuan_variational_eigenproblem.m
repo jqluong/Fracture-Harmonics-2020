@@ -21,7 +21,7 @@ L = (G.')*A*G; %Laplacian matrix
 [V,D] = eig(L);
 eigvalues = diag(D);
 min_eigvalue = eigvalues(1);
-eigfunction = V(:,1);
+eigfunction = (1/sqrt(h))*V(:,1);
 
 
 
@@ -29,5 +29,5 @@ eigfunction = V(:,1);
 
 x = linspace(a,b,n+1);
 plot(x,eigfunction);
-
+axis([0 1 -2 2])
 
