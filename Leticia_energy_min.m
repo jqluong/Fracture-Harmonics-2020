@@ -74,4 +74,7 @@ end
 %  return vector with function values
 f_values = f
 
+% plot f
+plot(x,f)
+
 end
