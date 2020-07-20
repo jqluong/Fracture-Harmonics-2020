@@ -1,4 +1,5 @@
 clear all
+opengl software
 %Ask user to input a vector of stepsizes and boundary conditions
 stepsize = input("Please input a horizontal vector of stepsizes: ");
 boundaryConditions0 = input("Please input the first boundary condition: ");
@@ -28,7 +29,22 @@ Q_red = Q(2:stepnumber, 2:stepnumber);
 f_unknown = Q_red \ -b(2:length(b) - 1)';
 f = [boundaryConditions0; f_unknown; boundaryConditions1]
 
+%Using eigenvalues and lagrange multipliers
+[eigenvectors, eigenvalues] = eig(Q);
+[m,n] = size(eigenvectors);
+partition = [0];
+for i = 1:size(stepsize)
+    partition = [partition partition(length(partition)) + stepsize(i)];
+end
 
+%Plot eigenvectors
+hold on
+for i = 1:n
+    plot(partition, eigenvectors(:, i), 'DisplayName', sprintf('Eigenvector of eigenvalue %f', eigenvalues(i,i) ))
+end
+title('Laplace Equations with ||f|| = 1')
+legend
+hold off
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Functions
 %Input: column function f, and stepsize column vector
