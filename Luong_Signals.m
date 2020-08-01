@@ -6,34 +6,40 @@ clear all
 stepsize = input("Enter the amount of steps the function will take: ") + 1;
 
 %Asks user whether they want a random or a sawtooth function
-randomOrSawtooth = input("Would you like a sawtooth function (press 1 if yes, otherwise, random function)? ");
-if randomOrSawtooth == 1
-   
+randomOrSquare = input("Would you like a square wave (press 1 if yes, otherwise, random function)? ");
+if randomOrSquare == 1
+    t = 0:1/(stepsize-1):1;
+   signal = square(2*pi*t);
 else
-signal = buildRandomSignal(stepsize);
+    signal = buildRandomSignal(stepsize);
 end
 signalWithError = awgn(signal, 10, 'measured');
 
 %Solve Optimization Problem
-problem = optimproblem('ObjectiveSense', 'min');
+problem1 = optimproblem('ObjectiveSense', 'min');
+problem2 = optimproblem('ObjectiveSense', 'min');
 recoveredSignal = optimvar('recoveredSignal', 1, stepsize);
 recoveredSignalDeriv = optimvar('recoveredSignalDeriv', 1, stepsize - 1);
 gradient = buildDerivative(stepsize);
-error1 = signal - recoveredSignal;
+error1 = recoveredSignal - signalWithError;
+error2 = gradient*recoveredSignal';
 absoluteValueConstraint = optimconstr(2*(stepsize - 1));
 recoveredSignalDerivNoAbs = gradient*recoveredSignal';
 for i = 1:2:2*(stepsize - 1) - 1
     absoluteValueConstraint(i) = recoveredSignalDerivNoAbs((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
     absoluteValueConstraint(i+1) = -recoveredSignalDerivNoAbs((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
 end
-problem.Constraints.cons1 = absoluteValueConstraint;
-problem.Objective = sum(error1.^2) + sum(recoveredSignalDeriv);
-sol = solve(problem);
+problem1.Constraints.cons1 = absoluteValueConstraint;
+problem1.Objective = sum(error1.^2) + sum(recoveredSignalDeriv);
+problem2.Objective = sum(error1.^2) + sum(error2.^2);
+sol1 = solve(problem1);
+sol2 = solve(problem2);
 hold on
 plot(0:1/(stepsize-1):1, signal)
 plot(0:1/(stepsize-1):1, signalWithError)
-plot(0:1/(stepsize-1):1, sol.recoveredSignal)
-legend('Original Signal', 'Signal With Error', 'Recovered Signal')
+plot(0:1/(stepsize-1):1, sol1.recoveredSignal)
+plot(0:1/(stepsize-1):1, sol2.recoveredSignal)
+legend('Original Signal', 'Signal With Error', 'Recovered Signal with l^1 term', 'Recovered Signal with l^2 term')
 hold off
 
 
@@ -47,7 +53,7 @@ end
 function derivativeMatrix = buildDerivative(stepsize)
     derivativeMatrix = zeros(stepsize - 1, stepsize);
     for i = 1:stepsize-1
-        derivativeMatrix(i,i) = -1/(stepsize-1);
-        derivativeMatrix(i, i+1) = 1/(stepsize - 1);
+        derivativeMatrix(i,i) = -1;%*(stepsize-1);
+        derivativeMatrix(i, i+1) = 1;%*(stepsize - 1);
     end
 end
