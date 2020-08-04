@@ -46,6 +46,7 @@ fL2Min = fminunc(fL2,f0,options);
 
 fL1Min = fminunc(fL1,f0,options);
 
+% plot
 x_axis =  0:1/(n-1):1;
 plot (x_axis,g);
 hold on
