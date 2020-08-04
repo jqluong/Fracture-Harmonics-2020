@@ -14,17 +14,17 @@
 %
 %   f_values =
 %
-%             1
-%             1
-%             1
-%             1
-%             1
-%             1
-%             1
-%             1
-%             1
-%             1
-%             1
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
+%             0.30151
 %
 
 function f_values = lag_mult(x)
@@ -33,7 +33,7 @@ n = length(x);          % determine lenght of vector input
 G = zeros(n-1,n);       % create matrix G
 A = zeros(n-1);         % create matrix A   
 f = zeros(n,1);         % create vector [f1 f2 ... fn-1 fn]
-h = (x(n)-x(1))/n       % step size if assuming equal step sizes
+h = (x(n)-x(1))/n;       % step size if assuming equal step sizes
 
 
 % fill matrix G
@@ -60,7 +60,7 @@ Q = transpose(G)*A*G;   % define matrix Q to simplify
 %f^T*f-1 = 0;
 
 % find eigenvalues and eigenvectors of matrix Q
-[V,D] = eig(Q)
+[V,D] = eig(Q);
 
 % create vector of eigenvalues
 lamb = diag(D);
