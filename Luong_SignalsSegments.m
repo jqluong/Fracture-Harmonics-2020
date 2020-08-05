@@ -49,6 +49,10 @@ end
 hold off
 legend([p1 p3 p4])
 
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Functions
 function squareFunction = buildSquare(points)
     squareFunction = zeros(points, 2);
