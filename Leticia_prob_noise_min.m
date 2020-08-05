@@ -1,12 +1,5 @@
 function f_value = prob_noise_min(stepsize)
 
-% vectorization of segment vertex:
-%
-% [ f_12 f_21 f_23 f_32 ... f_ij f_ji f_jk f_kj f_kl f_lk ... f_nm f_mn ]
-%
-% possible constraint f_ij = f_ji for all i = 2:n-1, j = 1:m
-%
-
 % number of vertex
 n = (1/stepsize) + 1;
 

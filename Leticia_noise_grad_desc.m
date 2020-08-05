@@ -1,4 +1,4 @@
-function f_values = noise_grad_desc (stepsize)
+function f_values = noise_grad_desc(stepsize)
 
 % suggested values for parameters
  tau_1 = 0.1;
@@ -35,7 +35,7 @@ for i = 1:iterations
     % update f
     f = f_old - tau_1*((f_old-g)-lamb_1*4*del2(f_old));  
     
-    J = (norm(f_old-g))^2 + (norm(gradient(f_old)))^2
+    J = (norm(f_old-g))^2 + (norm(gradient(f_old)))^2;
 end
 
 % case min ||f-g||^2 + |f'| 
@@ -65,11 +65,11 @@ for j = 1:iterations
     % update h
     h = h_old - tau_2*( (h_old-g) - lamb_2*( transpose(grad_H2) ) ) ;
     
-    H = (norm(h_old-g))^2 + sum(abs(grad_h))
+    H = (norm(h_old-g))^2 + sum(abs(grad_h));
     
 end
 
-% plot functions ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+% plot functions
 x_axis =  0:1/(n-1):1;
 plot (x_axis,g);
 hold on
