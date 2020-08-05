@@ -59,7 +59,7 @@ minL1prob.Objective = sum(J1.^2) + sum(Y);
 
 % constraint for absolute value in L1
 absConstr = optimconstr(2*n0);
-for i = 1:2:2*n0-1
+for i = 1:2:2*n0
     j = (i+1)/2;
     absConstr(i) = -J2star(j)  <= Y(j);
     absConstr(i+1) = J2star(j) <= Y(j);
@@ -67,9 +67,10 @@ end
 minL1prob.Constraints.absL1Constr = absConstr;
 
 % constraint multiple edpoints at same sample pt coincide
-sameConstr = optimconstr(n0);
-for j = 1:n0
-    sameConstr(j) = J2star(j) == 0;
+sameConstr = optimconstr(n);
+for j = 2:2:n-2
+   %sameConstr(j) = J2star(j) == 0;     % replaced to avoid issues
+   sameConstr(j) = f(j) == f(j+1);
 end
 
 % solve min problems:
@@ -78,7 +79,7 @@ solL1min = solve(minL1prob);
 
 % function used to format vector 
 function formated_vect = format_vector(u)
-[p,m] = size(u);
+[p,~] = size(u);
 alpha_formated = zeros(p/2,2);
 for k = 1:p/2
     alpha_formated(k,1) = u(2*k-1);
@@ -93,9 +94,9 @@ finSolL2 = format_vector(solL2min.f);
 finSolL1 = format_vector(solL1min.f);
 
 %check result (use for debug)
-%fin_g
-%finSolL2
-%finSolL1
+fin_g
+finSolL2
+finSolL1
 
 % plot results
 x_axis = 0:1/(n-1):1;
