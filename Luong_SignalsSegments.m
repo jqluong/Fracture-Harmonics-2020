@@ -47,13 +47,25 @@ for i = 1:stepsize
     end
 end
 hold off
-legend([p1 p3 p4])
+title('Denoising Algorithm with Line Segment Functions')
+legend([p1 p2 p3 p4])
+
+%Plot Gradients of Denosied Functions
+figure
+hold on
+plot(1:stepsize, (computeDerivative(stepsize)*l2Solution.recoveredSignal)')
+plot(1:stepsize, (computeDerivative(stepsize)*l1Solution.recoveredSignal)')
+legend('Gradient vector of Recovered Signal with l2 term', 'Gradient vector of Recovered Signal with l1 term')
+title('Gradient of Denoised Functions')
+hold off
 
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Functions
+
+%Builds a square function using line segment functions
 function squareFunction = buildSquare(points)
     squareFunction = zeros(points, 2);
     for i = 1:points
@@ -70,6 +82,7 @@ function squareFunction = buildSquare(points)
     end
 end
 
+%Builds an n x 2n derivative matrix for [startpoint endpoint] functions
 function gradientMatrix = computeDerivative(stepsize)
     gradientMatrix = zeros(stepsize, 2*stepsize);
     for i = 1:stepsize
@@ -78,6 +91,8 @@ function gradientMatrix = computeDerivative(stepsize)
     end
 end
 
+%Adds Gaussian noise to a function, preserves continuity of orignal
+%function
 function noisyFunction = addNoise(originalFunction)
     [m,n] = size(originalFunction);
     noisyFunction = zeros(m,n);
@@ -97,6 +112,8 @@ function noisyFunction = addNoise(originalFunction)
     end
 end
 
+%Sets up, and solves the l2 optimization problem.  Returns the optimization
+%solution
 function l2Solution = SolveL2Problem(noisyFunction, stepsize)
     noisyFunctionReg = zeros(2*stepsize, 1);
     for i = 1:stepsize
@@ -116,10 +133,12 @@ function l2Solution = SolveL2Problem(noisyFunction, stepsize)
         end
     end
     l2problem.Objective = sum(error1.^2) + sum(error2.^2);
-    %l2problem.Constraints.cons1 = endpointConstraint;
+    %l2problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
     l2Solution = solve(l2problem);
 end
 
+%Sets up, and solves the l1 optimization problem.  Returns the optimization
+%solution
 function l1Solution = SolveL1Problem(noisyFunction, stepsize)
     noisyFunctionReg = zeros(2*stepsize, 1);
     for i = 1:stepsize
@@ -145,11 +164,13 @@ function l1Solution = SolveL1Problem(noisyFunction, stepsize)
         absoluteValueConstraint(i+1) = error2((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
     end
     l1problem.Objective = sum(error1.^2) + sum(recoveredSignalDeriv);
-    %l1problem.Constraints.cons1 = endpointConstraint;
-    l1problem.Constraints.cons2 = absoluteValueConstraint;
+    %l1problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
+    l1problem.Constraints.cons2 = absoluteValueConstraint; 
     l1Solution = solve(l1problem);
 end
 
+%Converts [startpoint endpoint] 2n vector to n x 2 [startpoind; endpoint]
+%vector
 function convertedVector = solutionRegularizer(vector)
     [n, ~] = size(vector);
     convertedVector = zeros(n/2, 2);
