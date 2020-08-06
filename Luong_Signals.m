@@ -13,7 +13,7 @@ if randomOrSquare == 1
 else
     signal = buildRandomSignal(stepsize);
 end
-signalWithError = awgn(signal, 10, 'measured');
+signalWithError = awgn(signal, 25, 'measured');
 
 %Solve Optimization Problem
 problem1 = optimproblem('ObjectiveSense', 'min');
@@ -42,6 +42,12 @@ plot(0:1/(stepsize-1):1, sol2.recoveredSignal)
 legend('Original Signal', 'Signal With Error', 'Recovered Signal with l^1 term', 'Recovered Signal with l^2 term')
 hold off
 
+figure
+hold on
+plot(1:1:stepsize - 1, gradient*sol1.recoveredSignal')
+plot(1:1:stepsize - 1, gradient*sol2.recoveredSignal')
+legend('Gradient vector of Recovered Signal with l^1 term', 'Gradient vector of Recovered Signal with l^2 term')
+hold off
 
 function signal = buildRandomSignal(stepsize)
     signal = zeros(1, stepsize);
