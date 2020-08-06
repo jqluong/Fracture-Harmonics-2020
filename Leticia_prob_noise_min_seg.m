@@ -29,11 +29,15 @@ end
 g(n) = g0(n0);
         
 % create matrix to take the discrete L1 of "continuity between segments"
-discL1 = zeros(n0,n);
-    for j = 2:2:n0-1
-        discL1(j,j) = 1;
-        discL1(j,j+1) = -1;
+discL1 = zeros(n0-1,n);
+    for j = 1:n0-1
+        discL1(j,2*j-1) = 1;
+        discL1(j,2*j) = -1;
     end
+    
+    discL1
+    
+%~~~~~~~~~ popo must be after this ~~~~~~~~~~~~~~~    
     
 % create optimization problems:
 % for L2 term energy expression
@@ -43,11 +47,15 @@ minL1prob  = optimproblem('ObjectiveSense','minimize');
 
 % create optimization variables
 f = optimvar('f',n,1);                  
-Y = optimvar('Y',n0,1); 
+Y = optimvar('Y',n0-1,1); 
 
-J1 = f-transpose(g);                    
+J1 = f-transpose(g);  
 
-J2 = discL1*f;
+g
+
+discL1*transpose(g)
+
+J2 = discL1*f;  % vector (n0-1) length
 
 J2star = discL1*f;
 
@@ -58,20 +66,36 @@ minL2prob.Objective = sum(J1.^2) + sum(J2.^2);
 minL1prob.Objective = sum(J1.^2) + sum(Y);
 
 % constraint for absolute value in L1
-absConstr = optimconstr(2*n0);
-for i = 1:2:2*n0
-    j = (i+1)/2;
+absConstr = optimconstr(2*(n0-1));
+for i = 1:2:2*n0-3                          %2*(n0-1)
+    j = (i+1)/2;                            % (2*n0 - 3 +1)/2 = n0-1  % 2*n0 - 3 = 2*(n0-1) -1
     absConstr(i) = -J2star(j)  <= Y(j);
-    absConstr(i+1) = J2star(j) <= Y(j);
+    absConstr(i+1) = J2star(j) <= Y(j);     % j = n0-1 on last iter
 end
 minL1prob.Constraints.absL1Constr = absConstr;
 
 % constraint multiple edpoints at same sample pt coincide
-sameConstr = optimconstr(n);
-for j = 2:2:n-2
+sameConstr = optimconstr(n/2-1);  
+for j = 1:n/2-1
    %sameConstr(j) = J2star(j) == 0;     % replaced to avoid issues
-   sameConstr(j) = f(j) == f(j+1);
+   sameConstr(j) = f(2*j) == f(2*j+1);
+   
+   
+   % sameConstr(1) = f(2)   == f(3)
+   % sameConstr(2) = f(4)   == f(5)
+   % sameConstr(3) = f(6)   == f(7)
+   % sameConstr(4) = f(8)   == f(9)
+   % sameConstr(i) = f(2*i) == f(2*i+1)
+   % sameConstr(n/2-1) = f(n-2) == f(n-1)
+   
+   % 2*i+1 = n-1 -> 2*i = n-2 -> i = n/2 -1
+   
 end
+
+% remove constraint if desired:
+%minL2prob.Constraints.sameConstr = sameConstr;
+%minL1prob.Constraints.sameConstr = sameConstr;
+
 
 % solve min problems:
 solL2min = solve(minL2prob);
@@ -94,12 +118,10 @@ finSolL2 = format_vector(solL2min.f);
 finSolL1 = format_vector(solL1min.f);
 
 %check result (use for debug)
-fin_g
-finSolL2
-finSolL1
+
 
 % plot results
-x_axis = 0:1/(n-1):1;
+x_axis = 0:2/(n-1):2;
 hold on
 % noisy funtion
 for i = 1:n/2
@@ -120,9 +142,9 @@ end
 % L1 term min function
 for i = 1:n/2
     if i == 1
-        plot_L1 = plot([x_axis(i) x_axis(i+1)], [finSolL1(i, 1) finSolL1(i,2)], 'Color', [0.8500, 0.3250, 0.0980], 'DisplayName', '|f prime|^2 unknown function');
+        plot_L1 = plot([x_axis(i) x_axis(i+1)], [finSolL1(i, 1) finSolL1(i,2)], 'Color', [0.4940, 0.1840, 0.5560], 'DisplayName', '|f prime|^2 unknown function');
     else
-        plot([x_axis(i) x_axis(i+1)], [finSolL1(i, 1) finSolL1(i,2)], 'Color', [0.8500, 0.3250, 0.0980], 'DisplayName', '|f prime| unknown function');
+        plot([x_axis(i) x_axis(i+1)], [finSolL1(i, 1) finSolL1(i,2)], 'Color', [0.4940, 0.1840, 0.5560], 'DisplayName', '|f prime| unknown function');
     end
 end
 hold off       
