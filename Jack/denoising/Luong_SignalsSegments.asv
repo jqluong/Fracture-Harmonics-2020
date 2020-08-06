@@ -6,57 +6,55 @@ opengl software
 stepsize = input("Enter the amount of steps the function will take: ");
 points = stepsize + 1;
 %Only doing square function for now because
-signal = 0.5*(buildSquare(stepsize)+1);
+signal = buildSquare(stepsize);
 %Adds white gaussian noise to the square function
-%signalWithError = addNoise(signal);
+signalWithError = addNoise(signal);
 %Sets up and solves the l^2 optimization problem
-lambda = 0.4;
-l2Solution = SolveL2Problem(signalWithError, stepsize, lambda);
+l2Solution = SolveL2Problem(signalWithError, stepsize);
 l2Signal = solutionRegularizer(l2Solution.recoveredSignal);
-l1Solution = SolveL1Problem(signalWithError, stepsize, lambda);
+l1Solution = SolveL1Problem(signalWithError, stepsize);
 l1Signal = solutionRegularizer(l1Solution.recoveredSignal);
 
 %Plot Line Segment Functions
 hold on
-axis equal
 x = 0:1/stepsize:1;
 for i = 1:stepsize
     if i == 1
-        p1 = plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal', 'LineWidth', 1)
+        p1 = plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal')
     else
-        plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal', 'LineWidth', 1)
+        plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal')
     end
 end
-%for i = 1:stepsize
-%    if i == 1
-%        p2 = plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal', 'LineWidth', 1)
-%    else
-%        plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal', 'LineWidth', 1)
-%    end
-%end
-%for i = 1:stepsize
-%    if i == 1
-%        p3 = plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal', 'LineWidth', 1)
-%    else
-%        plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal', 'LineWidth', 1)
-%    end
-%end
 for i = 1:stepsize
     if i == 1
-        p4 = plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1)
+        p2 = plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal')
     else
-        plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1)
+        plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal')
+    end
+end
+for i = 1:stepsize
+    if i == 1
+        p3 = plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal')
+    else
+        plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal')
+    end
+end
+for i = 1:stepsize
+    if i == 1
+        p4 = plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal')
+    else
+        plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal')
     end
 end
 hold off
-title(['Denoising Algorithm with Line Segment Functions with parameter ', num2str(lambda)])
-legend([p1 p4])
+title('Denoising Algorithm with Line Segment Functions')
+legend([p1 p2 p3 p4])
 
 %Plot Gradients of Denosied Functions
 figure
 hold on
-plot(1:stepsize, (computeDerivative(stepsize)*l2Solution.recoveredSignal)', 'LineWidth', 1)
-plot(1:stepsize, (computeDerivative(stepsize)*l1Solution.recoveredSignal)', 'LineWidth', 1)
+plot(1:stepsize, (computeDerivative(stepsize)*l2Solution.recoveredSignal)')
+plot(1:stepsize, (computeDerivative(stepsize)*l1Solution.recoveredSignal)')
 legend('Gradient vector of Recovered Signal with l2 term', 'Gradient vector of Recovered Signal with l1 term')
 title('Gradient of Denoised Functions')
 hold off
@@ -116,7 +114,7 @@ end
 
 %Sets up, and solves the l2 optimization problem.  Returns the optimization
 %solution
-function l2Solution = SolveL2Problem(noisyFunction, stepsize, weight)
+function l2Solution = SolveL2Problem(noisyFunction, stepsize)
     noisyFunctionReg = zeros(2*stepsize, 1);
     for i = 1:stepsize
         noisyFunctionReg(i) = noisyFunction(i,1);
@@ -134,14 +132,14 @@ function l2Solution = SolveL2Problem(noisyFunction, stepsize, weight)
             endpointConstraint(i) = recoveredSignal(i) == recoveredSignal(stepsize + i - 1);
         end
     end
-    l2problem.Objective = sum(error1.^2) + weight*sum(error2.^2);
+    l2problem.Objective = sum(error1.^2) + sum(error2.^2);
     %l2problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
     l2Solution = solve(l2problem);
 end
 
 %Sets up, and solves the l1 optimization problem.  Returns the optimization
 %solution
-function l1Solution = SolveL1Problem(noisyFunction, stepsize, weight)
+function l1Solution = SolveL1Problem(noisyFunction, stepsize)
     noisyFunctionReg = zeros(2*stepsize, 1);
     for i = 1:stepsize
         noisyFunctionReg(i) = noisyFunction(i,1);
@@ -165,7 +163,7 @@ function l1Solution = SolveL1Problem(noisyFunction, stepsize, weight)
         absoluteValueConstraint(i) = -error2((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
         absoluteValueConstraint(i+1) = error2((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
     end
-    l1problem.Objective = sum(error1.^2) + weight*sum(recoveredSignalDeriv);
+    l1problem.Objective = sum(error1.^2) + sum(recoveredSignalDeriv);
     %l1problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
     l1problem.Constraints.cons2 = absoluteValueConstraint; 
     l1Solution = solve(l1problem);
