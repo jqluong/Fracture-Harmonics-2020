@@ -1,6 +1,6 @@
 %Requires communication and optimization toolbox
 opengl software
-%clear all
+clear all
 
 %Prompts user to input how many stepsizes should discretize [0,1]
 stepsize = input("Enter the amount of steps the function will take: ");
@@ -8,7 +8,7 @@ points = stepsize + 1;
 %Only doing square function for now because
 signal = 0.5*(buildSquare(stepsize)+1);
 %Adds white gaussian noise to the square function
-%signalWithError = addNoise(signal);
+signalWithError = addNoise(signal);
 %Sets up and solves the l^2 optimization problem
 lambda = 1;
 l2Solution = SolveL2Problem(signalWithError, stepsize, lambda);
@@ -147,14 +147,12 @@ function l2Solution = SolveL2Problem(noisyFunction, stepsize, weight)
         end
     end
     for i = 1:2:2*stepsize
-        if i > 1
-            endpointPenalty(i) = error3((i+1)/2) <= endpointPenalizer((i+1)/2);
-            endpointPenalty(i+1) = -error3((i+1)/2) <= endpointPenalizer((i+1)/2);
-        end
+        endpointPenalty(i) = error3((i+1)/2) <= endpointPenalizer((i+1)/2);
+        endpointPenalty(i+1) = -error3((i+1)/2) <= endpointPenalizer((i+1)/2);
     end
     l2problem.Objective = sum(error1.^2) + weight*sum(error2.^2) + sum(endpointPenalizer);
     %l2problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
-    l2problem.Constraints.cons2 = endpointPenalty;
+    l2problem.Constraints.cons2 = endpointPenalty; %Encourages continuity
     l2Solution = solve(l2problem);
 end
 
@@ -188,15 +186,13 @@ function l1Solution = SolveL1Problem(noisyFunction, stepsize, weight)
         absoluteValueConstraint(i+1) = error2((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
     end
     for i = 1:2:2*stepsize
-        if i > 1
-            endpointPenalty(i) = error3((i+1)/2) <= endpointPenalizer((i+1)/2);
-            endpointPenalty(i+1) = -error3((i+1)/2) <= endpointPenalizer((i+1)/2);
-        end
+        endpointPenalty(i) = error3((i+1)/2) <= endpointPenalizer((i+1)/2);
+        endpointPenalty(i+1) = -error3((i+1)/2) <= endpointPenalizer((i+1)/2);
     end
     l1problem.Objective = sum(error1.^2) + weight*sum(recoveredSignalDeriv) + sum(endpointPenalizer);
     %l1problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
-    l1problem.Constraints.cons2 = absoluteValueConstraint; 
-    l1problem.Constraints.cons3 = endpointPenalty;
+    l1problem.Constraints.cons2 = absoluteValueConstraint; %For l1 derivative
+    l1problem.Constraints.cons3 = endpointPenalty; %Encourages continuity
     l1Solution = solve(l1problem);
 end
 
