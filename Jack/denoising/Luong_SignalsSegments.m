@@ -10,7 +10,7 @@ signal = 0.5*(buildSquare(stepsize)+1);
 %Adds white gaussian noise to the square function
 %signalWithError = addNoise(signal);
 %Sets up and solves the l^2 optimization problem
-lambda = 0.4;
+lambda = 1;
 l2Solution = SolveL2Problem(signalWithError, stepsize, lambda);
 l2Signal = solutionRegularizer(l2Solution.recoveredSignal);
 l1Solution = SolveL1Problem(signalWithError, stepsize, lambda);
@@ -93,6 +93,15 @@ function gradientMatrix = computeDerivative(stepsize)
     end
 end
 
+%Builds a n x 2n matrix to evaluate endpoint differences
+function endpointMatrix = createEndpointMatrix(stepsize)
+    endpointMatrix = zeros(stepsize, 2*stepsize);
+    for i = 2:stepsize
+        endpointMatrix(i,i) = -1;
+        endpointMatrix(i, stepsize + i - 1) = 1;
+    end
+end
+
 %Adds Gaussian noise to a function, preserves continuity of orignal
 %function
 function noisyFunction = addNoise(originalFunction)
@@ -124,18 +133,28 @@ function l2Solution = SolveL2Problem(noisyFunction, stepsize, weight)
     end
     l2problem = optimproblem('ObjectiveSense', 'min');
     recoveredSignal = optimvar('recoveredSignal', 2*stepsize, 1);
+    endpointPenalizer = optimvar('errorPenalizer', stepsize, 1);
     %Set up terms used in objective
     error1 = recoveredSignal - noisyFunctionReg;
     error2 = computeDerivative(stepsize)*recoveredSignal;
+    error3 = createEndpointMatrix(stepsize)*recoveredSignal;
     %Constraints
     endpointConstraint = optimconstr(stepsize - 1);
+    endpointPenalty = optimconstr(2*stepsize);
     for i = 1:stepsize
         if i > 1
             endpointConstraint(i) = recoveredSignal(i) == recoveredSignal(stepsize + i - 1);
         end
     end
-    l2problem.Objective = sum(error1.^2) + weight*sum(error2.^2);
+    for i = 1:2:2*stepsize
+        if i > 1
+            endpointPenalty(i) = error3((i+1)/2) <= endpointPenalizer((i+1)/2);
+            endpointPenalty(i+1) = -error3((i+1)/2) <= endpointPenalizer((i+1)/2);
+        end
+    end
+    l2problem.Objective = sum(error1.^2) + weight*sum(error2.^2) + sum(endpointPenalizer);
     %l2problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
+    l2problem.Constraints.cons2 = endpointPenalty;
     l2Solution = solve(l2problem);
 end
 
@@ -150,24 +169,34 @@ function l1Solution = SolveL1Problem(noisyFunction, stepsize, weight)
     l1problem = optimproblem('ObjectiveSense', 'min');
     recoveredSignal = optimvar('recoveredSignal', 2*stepsize, 1);
     recoveredSignalDeriv = optimvar('recoveredSignalDeriv', stepsize, 1);
+    endpointPenalizer = optimvar('errorPenalizer', stepsize, 1);
     %Set up terms used in objective
     error1 = recoveredSignal - noisyFunctionReg;
     error2 = computeDerivative(stepsize)*recoveredSignal;
+    error3 = createEndpointMatrix(stepsize)*recoveredSignal;
     %Constraints
     endpointConstraint = optimconstr(stepsize - 1);
+    absoluteValueConstraint = optimconstr(2*stepsize);
+    endpointPenalty = optimconstr(2*stepsize);
     for i = 1:stepsize
         if i > 1
             endpointConstraint(i) = recoveredSignal(i) == recoveredSignal(stepsize + i - 1);
         end
     end
-    absoluteValueConstraint = optimconstr(2*stepsize);
     for i = 1:2:2*stepsize
         absoluteValueConstraint(i) = -error2((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
         absoluteValueConstraint(i+1) = error2((i+1)/2) <= recoveredSignalDeriv((i+1)/2);
     end
-    l1problem.Objective = sum(error1.^2) + weight*sum(recoveredSignalDeriv);
+    for i = 1:2:2*stepsize
+        if i > 1
+            endpointPenalty(i) = error3((i+1)/2) <= endpointPenalizer((i+1)/2);
+            endpointPenalty(i+1) = -error3((i+1)/2) <= endpointPenalizer((i+1)/2);
+        end
+    end
+    l1problem.Objective = sum(error1.^2) + weight*sum(recoveredSignalDeriv) + sum(endpointPenalizer);
     %l1problem.Constraints.cons1 = endpointConstraint; %Toggles continuity
     l1problem.Constraints.cons2 = absoluteValueConstraint; 
+    l1problem.Constraints.cons3 = endpointPenalty;
     l1Solution = solve(l1problem);
 end
 
