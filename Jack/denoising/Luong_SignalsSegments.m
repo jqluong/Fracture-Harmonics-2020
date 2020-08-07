@@ -1,6 +1,6 @@
 %Requires communication and optimization toolbox
 opengl software
-%clear all
+clear all
 
 %Prompts user to input how many stepsizes should discretize [0,1]
 stepsize = input("Enter the amount of steps the function will take: ");
@@ -8,11 +8,11 @@ points = stepsize + 1;
 %Only doing square function for now because
 signal = 0.5*(buildSquare(stepsize)+1);
 %Adds white gaussian noise to the square function
-%signalWithError = addNoise(signal);
+signalWithError = addNoise(signal);
 %Sets up and solves the l^2 optimization problem
 alpha = 1;
 beta = 1;
-gamma = 2;
+gamma = 1;
 %l2Solution = SolveL2Problem(signalWithError, stepsize, alpha, beta, gamma);
 %l2Signal = solutionRegularizer(l2Solution.recoveredSignal);
 l1Solution = SolveL1Problem(signalWithError, stepsize, alpha, beta, gamma);
