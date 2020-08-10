@@ -1,6 +1,6 @@
 %Requires communication and optimization toolbox
 opengl software
-clear all
+%clear all
 
 %Prompts user to input how many stepsizes should discretize [0,1]
 stepsize = input("Enter the amount of steps the function will take: ");
@@ -13,8 +13,8 @@ signalWithError = addNoise(signal);
 alpha = 1;
 beta = 1;
 gamma = 1;
-%l2Solution = SolveL2Problem(signalWithError, stepsize, alpha, beta, gamma);
-%l2Signal = solutionRegularizer(l2Solution.recoveredSignal);
+l2Solution = SolveL2Problem(signalWithError, stepsize, alpha, beta, gamma);
+l2Signal = solutionRegularizer(l2Solution.recoveredSignal);
 l1Solution = SolveL1Problem(signalWithError, stepsize, alpha, beta, gamma);
 l1Signal = solutionRegularizer(l1Solution.recoveredSignal);
 
@@ -24,25 +24,25 @@ axis equal
 x = 0:1/stepsize:1;
 for i = 1:stepsize
     if i == 1
-        p1 = plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal', 'LineWidth', 1)
+        p1 = plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal', 'LineWidth', 1);
     else
         plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal', 'LineWidth', 1)
     end
 end
 %for i = 1:stepsize
 %    if i == 1
-%        p2 = plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal', 'LineWidth', 1)
+%        p2 = plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal', 'LineWidth', 1);
 %    else
 %        plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal', 'LineWidth', 1)
 %    end
 %end
-%for i = 1:stepsize
-%    if i == 1
-%        p3 = plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal', 'LineWidth', 1)
-%    else
-%        plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal', 'LineWidth', 1)
-%    end
-%end
+for i = 1:stepsize
+    if i == 1
+        p3 = plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal', 'LineWidth', 1);
+    else
+        plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal', 'LineWidth', 1)
+    end
+end
 for i = 1:stepsize
     if i == 1
         p4 = plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1);
@@ -52,7 +52,7 @@ for i = 1:stepsize
 end
 hold off
 title(['Denoising Algorithm with Line Segment Functions with parameters \alpha = ', num2str(alpha), ', \beta = ', num2str(beta), ', \gamma = ', num2str(gamma)])
-legend([p1 p4])
+legend([p1 p3])
 
 %Plot Gradients of Denosied Functions
 figure
