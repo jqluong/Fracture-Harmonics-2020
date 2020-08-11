@@ -8,15 +8,15 @@ points = stepsize + 1;
 %Only doing square function for now because
 signal = 0.5*(buildSquare(stepsize)+1);
 %Adds white gaussian noise to the square function
-signalWithError = addNoise(signal);
+%signalWithError = addNoise(signal);
 %Sets up and solves the l^2 optimization problem
-alpha = 1;
+alpha = 0.5;
 beta = 1;
-gamma = 1;
+gamma = 0.01;
 l2Solution = SolveL2Problem(signalWithError, stepsize, alpha, beta, gamma);
 l2Signal = solutionRegularizer(l2Solution.recoveredSignal);
-l1Solution = SolveL1Problem(signalWithError, stepsize, alpha, beta, gamma);
-l1Signal = solutionRegularizer(l1Solution.recoveredSignal);
+%l1Solution = SolveL1Problem(signalWithError, stepsize, alpha, beta, gamma);
+%l1Signal = solutionRegularizer(l1Solution.recoveredSignal);
 
 %Plot Line Segment Functions
 hold on
@@ -43,13 +43,13 @@ for i = 1:stepsize
         plot([x(i) x(i+1)], [l2Signal(i, 1) l2Signal(i,2)], 'Color', 'g', 'DisplayName', 'l2 Signal', 'LineWidth', 1)
     end
 end
-for i = 1:stepsize
-    if i == 1
-        p4 = plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1);
-    else
-        plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1)
-    end
-end
+%for i = 1:stepsize
+%    if i == 1
+%        p4 = plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1);
+%    else
+%        plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1)
+%    end
+%end
 hold off
 title(['Denoising Algorithm with Line Segment Functions with parameters \alpha = ', num2str(alpha), ', \beta = ', num2str(beta), ', \gamma = ', num2str(gamma)])
 legend([p1 p3])
