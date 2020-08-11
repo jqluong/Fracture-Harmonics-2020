@@ -8,11 +8,11 @@ points = stepsize + 1;
 %Only doing square function for now because
 signal = 0.5*(buildSquare(stepsize)+1);
 %Adds white gaussian noise to the square function
-%signalWithError = addNoise(signal);
+signalWithError = addNoise(signal);
 %Sets up and solves the l^2 optimization problem
-alpha = 0.5;
+alpha = 1;
 beta = 1;
-gamma = 0.01;
+gamma = 1;
 l2Solution = SolveL2Problem(signalWithError, stepsize, alpha, beta, gamma);
 l2Signal = solutionRegularizer(l2Solution.recoveredSignal);
 %l1Solution = SolveL1Problem(signalWithError, stepsize, alpha, beta, gamma);
@@ -57,8 +57,8 @@ legend([p1 p3])
 %Plot Gradients of Denosied Functions
 figure
 hold on
-%scatter(1:stepsize, (computeDerivative(stepsize)*l2Solution.recoveredSignal)', 'LineWidth', 1)
-scatter(1:stepsize, (computeDerivative(stepsize)*l1Solution.recoveredSignal)', 'LineWidth', 1)
+scatter(1:stepsize, (computeDerivative(stepsize)*l2Solution.recoveredSignal)', 'LineWidth', 1)
+%scatter(1:stepsize, (computeDerivative(stepsize)*l1Solution.recoveredSignal)', 'LineWidth', 1)
 legend('Gradient vector of Recovered Signal with l2 term', 'Gradient vector of Recovered Signal with l1 term')
 title('Gradient of Denoised Functions')
 hold off
