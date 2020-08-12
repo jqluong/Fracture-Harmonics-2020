@@ -17,7 +17,7 @@ grad_H2 = zeros(1,n);
 % create noisy input 
 % first use standard square with desired amplitude and period
 x = 0:2*pi/(n-1):2*pi;
-y = 5 + (square(x));
+y = square(x);
 % then add random noise
 g = y + (0.1) * randn(1,n);
 
