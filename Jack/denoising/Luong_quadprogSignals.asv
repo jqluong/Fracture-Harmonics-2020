@@ -16,10 +16,10 @@ alpha = 1;
 beta = 1;
 gamma = 1;
 %Problem Setup
-derivativeMatrix = [computeDerivative(segmentsnumber) sparse(segmentsnumber, segmentsnumber)];
-quadraticTerm = beta*(derivativeMatrix' * derivativeMatrix) + alpha*[speye(2*segmentsnumber,2*segmentsnumber) sparse(2*segmentsnumber, segmentsnumber); sparse(segmentsnumber,2*segmentsnumber) sparse(segmentsnumber,segmentsnumber)];
+derivativeMatrix = [computeDerivative(segmentsnumber) sparse(segmentsnumber, segmentnumber)];
+quadraticTerm = beta*(derivativeMatrix' * derivativeMatrix) + alpha*[speye(2*segmentsnumber) sparse(2*segmentsnumber, segmentsnumber); sparse(segmentsnumber,2*segmentsnumber) sparse(segmentsnumber)];
 linearTerm = -2*alpha*[signalWithError; zeros(segmentsnumber,1)] + gamma*[zeros(2*segmentsnumber,1); ones(segmentsnumber,1)];
-constraintMatrix = [-createEndpointMatrix(segmentsnumber) -speye(segmentsnumber); createEndpointMatrix(segmentsnumber) -speye(segmentsnumber)];
+constraintMatrix = [-createEndpointMatrix(segmentsnumber) -speye(segmentsnumber); createEndpointMatrix(segmentsnumber) -eye(segmentsnumber)];
 options = optimoptions(@quadprog, 'Algorithm', 'interior-point-convex', 'OptimalityTolerance', 1e-12);
 solutionAppend = quadprog(2*quadraticTerm, linearTerm, constraintMatrix, zeros(2*segmentsnumber,1));
 %Plotting
