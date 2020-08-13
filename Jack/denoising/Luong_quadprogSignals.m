@@ -12,8 +12,8 @@ signalWithError = addNoise(signal);
 signalWithError = [signalWithError(:,1); signalWithError(:,2)]; 
 %Sets up and solves the l^2 optimization problem
 %Constraints
-alpha = .1;
-beta = 10;
+alpha = 1;
+beta = 1;
 gamma = 1;
 %Problem Setup
 derivativeMatrix = [computeDerivative(stepsize) zeros(stepsize)];
@@ -21,7 +21,7 @@ quadraticTerm = beta*(derivativeMatrix' * derivativeMatrix) + alpha*[eye(2*steps
 linearTerm = -2*alpha*[signalWithError; zeros(stepsize,1)] + gamma*[zeros(2*stepsize,1); ones(stepsize,1)];
 constraintMatrix = [-createEndpointMatrix(stepsize) -eye(stepsize); -createEndpointMatrix(stepsize) eye(stepsize)];
 options = optimoptions(@quadprog, 'Algorithm', 'interior-point-convex', 'OptimalityTolerance', 1e-12);
-solutionAppend = quadprog(quadraticTerm, linearTerm, constraintMatrix, zeros(2*stepsize,1));
+solutionAppend = quadprog(2*quadraticTerm, linearTerm, constraintMatrix, zeros(2*stepsize,1));
 %Plotting
 solution = [solutionAppend(1:stepsize, 1) solutionAppend(stepsize+1:2*stepsize,1)];
 signalWithError = [signalWithError(1:stepsize, 1) signalWithError(stepsize+1:2*stepsize,1)];

@@ -18,7 +18,7 @@ h = (b-a)/n;
 %% Build matrices
 mu = 1;  %weight for the ||f-g||^2 term
 lambda = 1;   %weight for the ||f'||^2 term
-eta = 10000; %weight for the continuity term
+eta = 1000; %weight for the continuity term
 L = sparse([speye(n-1) zeros(n-1,2) speye(n-1)]);
 M = mu*transpose(L)*L;
 P = sparse((1/h)*[-speye(n-1) zeros(n-1,2) speye(n-1)]);
