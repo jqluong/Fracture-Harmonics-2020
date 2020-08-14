@@ -1,16 +1,25 @@
+%Objective: Generates a square signal, adds noise to it, and tries to
+%recover the original signal via the minimization of ||f-g||^2 + ||Gf||^2 +
+%||Df||_1.  Treats functions as collection of line segments.  G is the
+%gradient matrix and D is the discontinuity matrix.
+%Functions are defined as a 2n x 1 vector where for each interval i out of n, 
+%the startpoint is given at location i and the endpoint is given at location n
+%+ i.  They are also defined as n x 2 vector where the first column
+%contains startpoints and the second column contains endpoints.
+
 %Requires optimization toolbox
 opengl software
 clear all
 
-%Prompts user to input how many segmentsnumbers should discretize [0,1]
+%Prompts user to input how many segmentsshould discretize [0,1]
 segmentsnumber = input("Enter the amount of steps the function will take: ");
 points = segmentsnumber + 1;
-%Only doing square function for now because
+%Generates square function
 signal = 0.5*(buildSquare(segmentsnumber)+1);
 %Adds white gaussian noise to the square function
 signalWithError = addNoise(signal);
 signalWithError = [signalWithError(:,1); signalWithError(:,2)]; 
-%Sets up and solves the l^2 optimization problem
+%Sets up and solves the optimization problem via quadprog.
 %Constraints
 alpha = 1;
 beta = 1;
@@ -61,10 +70,6 @@ hold off
 title(['Denoising Algorithm with Line Segment Functions with parameters \alpha = ', num2str(alpha), ', \beta = ', num2str(beta), ', \gamma = ', num2str(gamma)])
 legend([p1 p3])
 
-
-
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Functions
@@ -86,12 +91,14 @@ function squareFunction = buildSquare(points)
     end
 end
 
-%Builds an n x 2n derivative matrix for [startpoint endpoint] functions
+%Builds an n x 2n derivative matrix for [startpoint; endpoint] functions
+%using sparse matrices
 function gradientMatrix = computeDerivative(segmentsnumber)
     gradientMatrix = [-speye(segmentsnumber) speye(segmentsnumber)];
 end
 
-%Builds a n x 2n matrix to evaluate endpoint differences
+%Builds a n x 2n matrix to evaluate endpoint differences using sparpse
+%matrices
 function endpointMatrix = createEndpointMatrix(segmentsnumber)
     
     endpointMatrix = [sparse(1, segmentsnumber*2); sparse(segmentsnumber-1,1) -speye(segmentsnumber-1) speye(segmentsnumber-1) sparse(segmentsnumber-1,1)];
