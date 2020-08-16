@@ -1,6 +1,6 @@
 function v = segment_norm(y, p, x)
     % function to compute the Lp norm of input segment based function.
-    % uses the midpoint of the segment as the segment value. 
+    % uses the midpoint of the segment as the segment value; trapezoid rule. 
     % for functions following the convention:
     %     [ y_{1,2}; y_{2,3}; ... ; y_{n,n+1}; y_{2,1}; y_{3,2}; ... ;
     %     y_{n+1,n} ]
