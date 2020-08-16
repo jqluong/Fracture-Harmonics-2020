@@ -20,6 +20,7 @@ disp('l1 norm');
 segment_norm(y,1,x)
 disp('l2 norm');
 segment_norm(y,2,x)
+segment_norm(y,2)% if x is even spacing on [0,1]
 
 hold on
 segment_plot(x,y)
