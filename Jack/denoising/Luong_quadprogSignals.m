@@ -2,11 +2,11 @@
 opengl software
 clear all
 
-%Prompts user to input how many stepsizes should discretize [0,1]
-stepsize = input("Enter the amount of steps the function will take: ");
-points = stepsize + 1;
+%Prompts user to input how many segmentsnumbers should discretize [0,1]
+segmentsnumber = input("Enter the amount of steps the function will take: ");
+points = segmentsnumber + 1;
 %Only doing square function for now because
-signal = 0.5*(buildSquare(stepsize)+1);
+signal = 0.5*(buildSquare(segmentsnumber)+1);
 %Adds white gaussian noise to the square function
 signalWithError = addNoise(signal);
 signalWithError = [signalWithError(:,1); signalWithError(:,2)]; 
@@ -16,41 +16,41 @@ alpha = 1;
 beta = 1;
 gamma = 1;
 %Problem Setup
-derivativeMatrix = [computeDerivative(stepsize) zeros(stepsize)];
-quadraticTerm = beta*(derivativeMatrix' * derivativeMatrix) + alpha*[eye(2*stepsize) zeros(2*stepsize, stepsize); zeros(stepsize,2*stepsize) zeros(stepsize)];
-linearTerm = -2*alpha*[signalWithError; zeros(stepsize,1)] + gamma*[zeros(2*stepsize,1); ones(stepsize,1)];
-constraintMatrix = [-createEndpointMatrix(stepsize) -eye(stepsize); -createEndpointMatrix(stepsize) eye(stepsize)];
+derivativeMatrix = [computeDerivative(segmentsnumber) sparse(segmentsnumber, segmentsnumber)];
+quadraticTerm = beta*(derivativeMatrix' * derivativeMatrix) + alpha*[speye(2*segmentsnumber,2*segmentsnumber) sparse(2*segmentsnumber, segmentsnumber); sparse(segmentsnumber,2*segmentsnumber) sparse(segmentsnumber,segmentsnumber)];
+linearTerm = -2*alpha*[signalWithError; zeros(segmentsnumber,1)] + gamma*[zeros(2*segmentsnumber,1); ones(segmentsnumber,1)];
+constraintMatrix = [-createEndpointMatrix(segmentsnumber) -speye(segmentsnumber); createEndpointMatrix(segmentsnumber) -speye(segmentsnumber)];
 options = optimoptions(@quadprog, 'Algorithm', 'interior-point-convex', 'OptimalityTolerance', 1e-12);
-solutionAppend = quadprog(2*quadraticTerm, linearTerm, constraintMatrix, zeros(2*stepsize,1));
+solutionAppend = quadprog(2*quadraticTerm, linearTerm, constraintMatrix, zeros(2*segmentsnumber,1));
 %Plotting
-solution = [solutionAppend(1:stepsize, 1) solutionAppend(stepsize+1:2*stepsize,1)];
-signalWithError = [signalWithError(1:stepsize, 1) signalWithError(stepsize+1:2*stepsize,1)];
+solution = [solutionAppend(1:segmentsnumber, 1) solutionAppend(segmentsnumber+1:2*segmentsnumber,1)];
+signalWithError = [signalWithError(1:segmentsnumber, 1) signalWithError(segmentsnumber+1:2*segmentsnumber,1)];
 
 hold on
 axis tight
-x = 0:1/stepsize:1;
-for i = 1:stepsize
+x = 0:1/segmentsnumber:1;
+for i = 1:segmentsnumber
     if i == 1
         p1 = plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal', 'LineWidth', 1);
     else
         plot([x(i) x(i+1)], [signal(i, 1) signal(i,2)], 'Color', 'b', 'DisplayName', 'Original Signal', 'LineWidth', 1)
     end
 end
-%for i = 1:stepsize
+%for i = 1:segmentsnumber
 %    if i == 1
 %        p2 = plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal', 'LineWidth', 1);
 %    else
 %        plot([x(i) x(i+1)], [signalWithError(i, 1) signalWithError(i,2)], 'Color', 'r', 'DisplayName', 'Noisy Signal', 'LineWidth', 1)
 %    end
 %end
-for i = 1:stepsize
+for i = 1:segmentsnumber
     if i == 1
         p3 = plot([x(i) x(i+1)], [solution(i, 1) solution(i,2)], 'Color', 'g', 'DisplayName', 'Solution', 'LineWidth', 1);
     else
         plot([x(i) x(i+1)], [solution(i, 1) solution(i,2)], 'Color', 'g', 'DisplayName', 'Solution', 'LineWidth', 1)
     end
 end
-%for i = 1:stepsize
+%for i = 1:segmentsnumber
 %    if i == 1
 %        p4 = plot([x(i) x(i+1)], [l1Signal(i, 1) l1Signal(i,2)], 'Color', 'm', 'DisplayName', 'l1 Signal', 'LineWidth', 1);
 %    else
@@ -87,21 +87,14 @@ function squareFunction = buildSquare(points)
 end
 
 %Builds an n x 2n derivative matrix for [startpoint endpoint] functions
-function gradientMatrix = computeDerivative(stepsize)
-    gradientMatrix = zeros(stepsize, 2*stepsize);
-    for i = 1:stepsize
-        gradientMatrix(i, i) = -1;
-        gradientMatrix(i, stepsize + i) = 1;
-    end
+function gradientMatrix = computeDerivative(segmentsnumber)
+    gradientMatrix = [-speye(segmentsnumber) speye(segmentsnumber)];
 end
 
 %Builds a n x 2n matrix to evaluate endpoint differences
-function endpointMatrix = createEndpointMatrix(stepsize)
-    endpointMatrix = zeros(stepsize, 2*stepsize);
-    for i = 2:stepsize
-        endpointMatrix(i,i) = -1;
-        endpointMatrix(i, stepsize + i - 1) = 1;
-    end
+function endpointMatrix = createEndpointMatrix(segmentsnumber)
+    
+    endpointMatrix = [sparse(1, segmentsnumber*2); sparse(segmentsnumber-1,1) -speye(segmentsnumber-1) speye(segmentsnumber-1) sparse(segmentsnumber-1,1)];
 end
 
 %Adds Gaussian noise to a function, preserves continuity of orignal
