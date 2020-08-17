@@ -50,6 +50,8 @@ function f = quadprog_denoise(g, alpha, beta)
     H = alpha*(G'*G) + M;
 
     % linear
+    % for v, initially used identity, then changed to midpoint
+    % term is v = -2*g'*M extended with 1 vector
     %v = [-2*g', ones(1,n)];
     v = [-2*g'*L, ones(1,n)];
 
