@@ -12,7 +12,7 @@ function segment_plot(x, y, c)
     end
     
     n = length(x)/2;
-    lw = 1; % line width for plot
+    lw = 5;
     
     x1 = x(1:n)'; % line segment position 1
     x2 = x(n+1:end)'; % line segment position 2
@@ -20,5 +20,5 @@ function segment_plot(x, y, c)
     y1 = y(1:n)';
     y2 = y(n+1:end)';
     
-    plot([x1;x2],[y1;y2], 'Color', c, 'LineWidth', lw);
+    plot([x1;x2],[y1;y2], 'Color', c);
 end

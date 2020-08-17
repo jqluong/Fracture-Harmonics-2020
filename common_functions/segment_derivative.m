@@ -7,11 +7,9 @@ function G = segment_derivative(n, h)
     % h defaults to 1.
     % output is matrix G such that G*y = [y_1'; y_2'; ... ; y_n']
     
-    if nargin > 1 % check if h is supplied, else default to 1
-        w = h;
-    else
-        w = 1;
+    if nargin == 1 % check if h is supplied, else default to 1
+        h = 1;
     end
     
-    G = 1/w * kron([-1 1], speye(n));
+    G = 1/h * kron([-1 1], speye(n));
 end
