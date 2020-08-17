@@ -33,9 +33,14 @@ function f = quadprog_denoise(g, alpha, beta)
     n = length(g)/2;
     h = 1/n;
     
-    % base matrices
+    % base matrices - first construct with common functions, then extend
+    % the dimensionality with zeroes to account for the stacked variable 
+    % method
     G = [segment_derivative(n), zeros(n)];
     D = [beta*segment_discontinuity(n); zeros(1, 2*n)]; 
+    
+    % for M, initially used Identity, now trying the midpoint (trapezoid
+    % instead of endpoint)
     %M = [speye(2*n), zeros(2*n, n); zeros(n, 3*n)];
     L = segment_midpoint(n);
     L = 2*(L'*L);
@@ -48,7 +53,7 @@ function f = quadprog_denoise(g, alpha, beta)
     %v = [-2*g', ones(1,n)];
     v = [-2*g'*L, ones(1,n)];
 
-    % constraint
+    % constraint matrix
     C = [-D, -speye(n); D, -speye(n)];
     z = zeros(size(C,1),1);
 
