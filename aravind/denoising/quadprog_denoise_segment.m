@@ -1,6 +1,6 @@
 %% problem
 % argmin_f |f-g|_2^2 + alpha*|f'|_2 + beta*|Df|_1
-alpha = 1;
+alpha = 1e6;
 beta = 10;
 
 % construct noisy function
@@ -34,18 +34,19 @@ function f = quadprog_denoise(g, alpha, beta)
     h = 1/n;
     
     % base matrices
-    G = [segment_derivative(n, h), zeros(n)];
+    G = [segment_derivative(n), zeros(n)];
     D = [beta*segment_discontinuity(n); zeros(1, 2*n)]; 
     %M = [speye(2*n), zeros(2*n, n); zeros(n, 3*n)];
-    M = segment_midpoint(n);
-    M = 2*(M'*M);
-    M = [M, zeros(2*n, n); zeros(n, 3*n)];
+    L = segment_midpoint(n);
+    L = 2*(L'*L);
+    M = [L, zeros(2*n, n); zeros(n, 3*n)];
 
     % quadratic
     H = alpha*(G'*G) + M;
 
     % linear
-    v = [-2*g', ones(1,n)];
+    %v = [-2*g', ones(1,n)];
+    v = [-2*g'*L, ones(1,n)];
 
     % constraint
     C = [-D, -speye(n); D, -speye(n)];
