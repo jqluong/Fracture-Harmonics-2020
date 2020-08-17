@@ -1,4 +1,4 @@
-%% Compute argmin_f mu*||f-g||^2 + lambda*||f'|| + eta*||Df|| using a line segment method
+%% Compute argmin_f ||f-g||^2 + alpha*||Gf||^2 + beta*||Df|| using a line segment method
 clear
 
 %% Input data
@@ -16,24 +16,23 @@ h = (b-a)/n;
 %% Build matrices
 
 %weights
-mu = 1;  %weight for the ||f-g||^2 term
-lambda = 1;   %weight for the ||f'||^2 term
-eta = 100; %weight for the continuity term
+alpha = 1;   %weight for the ||f'||^2 term
+beta = 100; %weight for the continuity term
 
-%matrices for mu*||f-g||^2 term
+%matrices for ||f-g||^2 term
 L = sparse([speye(n-1) zeros(n-1,2) speye(n-1)]);
-M = sparse(mu*transpose(L)*L);
+M = sparse(transpose(L)*L);
 
-%matrices for lambda*||f'|| term
-P = sparse(lambda*(1/h)*[-speye(n-1) zeros(n-1,2) speye(n-1)]);
-Q = lambda*transpose(P)*P;
+%matrices for alpha*||Gf|| term
+G = sparse(alpha*(1/h)*[-speye(n-1) zeros(n-1,2) speye(n-1)]);
+GTG = alpha*transpose(G)*G;
 
-%matrices for eta*||Df|| term
-D = sparse(eta*[speye(n) -speye(n)]);
+%matrices for beta*||Df|| term
+D = sparse(beta*[speye(n) -speye(n)]);
 
 %matrix for quadratic term
 H = sparse(3*n,3*n);
-H(1:2*n,1:2*n) = M+Q;
+H(1:2*n,1:2*n) = M+GTG;
 v = ones(3*n,1);
 v(1:2*n) = -2*M*g;
 

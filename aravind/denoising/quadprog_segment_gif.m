@@ -58,14 +58,6 @@ for alpha = [10, 500, 1000, 5000, 10000, 100000, 1000000]
         imwrite(imind,cm,filename,'gif','WriteMode','append'); 
     end
 end
-% plot results
-hold on
-segment_plot(x,gi,'c')
-segment_plot(x,g,'b')
-segment_plot(x,f, 'r')
-segment_plot_legend({'initial signal','noisy signal','output signal'}, ['c','b','r']);
-title(['Denoising with quadprog; \alpha = ', num2str(alpha), ', \beta = ', num2str(beta)]);
-hold off
 
 %% quadprog function 
 function f = quadprog_denoise(g, alpha, beta)
