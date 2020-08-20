@@ -5,9 +5,6 @@ function dirichletEnergy = computeDirichletEnergy(xaxis, yaxis, f)
     %Assumes equally spaced partitions.  Assumes you don't have the 
     %triangle mesh yet.
     
-    %Area for integration at the end
-    cellArea = abs(xaxis(2) - xaxis(1)) * abs(yaxis(2) - yaxis(1));
-    
     %Need to do this step and idk why
     [xaxis, yaxis] = meshgrid(xaxis, yaxis);
     %gptoolbox grad function requires vertex matrix to be n x 2
@@ -18,6 +15,7 @@ function dirichletEnergy = computeDirichletEnergy(xaxis, yaxis, f)
     %Constructs gradient matrix
     G = grad([xaxis yaxis], T); 
     %Compute dirichlet Energy
-    gradient = (G*f(:)) .* (G*f(:));
-    dirichletEnergy = (cellArea/2)*sum(gradient, 'all');
+    gradient = (G(1:length(G)/2, :)*f(:)).^2 + (G(length(G)/2+1:length(G), :)*f(:)).^2;
+    cellArea = doublearea([xaxis yaxis], T)/2;
+    dirichletEnergy = sum(cellArea'*gradient, 'all');
 end
