@@ -1,35 +1,42 @@
-%% Solves the 2D Poisson equation: Laplace u = f (over triangular mesh in R^2) subject to Dirichlet boundary condition
-%requires gptoolbox
-%INPUTS:
-    %V = vertices
-    %F = faces
-    %f = source term of Poisson equation
-    %u_0 = boundary condition
-    %bv = boundary vertices
-    
-%OUTPUT:
-    %u_int = vector of values of u in the interior of domain
+%% Example of solving Possion equation with Dirichlet boundary condition
+%requires poisson_2D.m
 
-function [u_int] = poisson_2D(V,F,f,u_0,bv)
+clear
 
-  % Based on 2.1 of "Algorithms and Interfaces for Real-Time Deformation of 2D and 3D
-  % shapes" [Jacobson 2013]
 
-  L = cotmatrix(V,F); %Laplacian operator (sparse)
-  M = massmatrix(V,F,'full'); %mass matrix (sparse)
-  
-  b_1 = M*f;
-  b_1(bv) = [];
-   
-  b_2 = (-1)*L*u_0;
-  b_2(bv) = [];
-  
-  b = b_1 + b_2;
-  
-  
-  L(bv,:) = [];
-  L(:,bv) = [];
-  
-  u_int = L\b; 
+%% Generate mesh
+[x, y] = meshgrid(1:10, 1:10);
+points = [x(:), y(:)];
+V = [points zeros(size(points,1),1)];
+F = delaunay(points);
 
-end
+
+%% Input
+n = size(V,1);
+f = sparse(n,1); %source term in Poisson equation
+
+%% Create vector for boundary values u_0
+O = outline(F);     %boundary outline (edges)
+bv = unique(O(:));  %boundary vertices
+v = zeros(n,1);
+
+for i = bv               %%this is for the boundary condition of u(x,y) = x + y along the boundary
+    v(i) = V(i,1)+V(i,2);
+end 
+
+u_0 = v;
+
+
+%% Solve for u
+u_int = poisson_2D(V,F,f,u_0,bv);
+v_int = setdiff((1:size(V,1)),bv).'; %interior vertices
+s = sparse(size(V,1),1);
+s(v_int) = u_int;
+u = s + u_0;
+
+
+%% Plot u
+X = reshape(V(:,1),10,10)';
+Y = reshape(V(:,2),10,10)';
+Z = reshape(u,10,10)';
+surf(X,Y,Z);
