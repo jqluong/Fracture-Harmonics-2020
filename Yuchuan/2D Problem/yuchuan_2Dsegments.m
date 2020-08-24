@@ -9,3 +9,4 @@ u(1:3)=1;
 D = discontinuity_matrix(F);
 
 Du = sparse(D*u);
+spy(D,'b',5);
