@@ -14,7 +14,7 @@ yaxis = xaxis;
 [xaxis, yaxis] = meshgrid(xaxis, yaxis);
 z = xaxis + yaxis;
 T = delaunay(xaxis,yaxis);
-trisurf(T, xaxis, yaxis, f)
+trisurf(T, xaxis, yaxis, z)
 %Dirichlet Energy on triangular mesh
 xtriangle = xaxis(:);
 ytriangle = yaxis(:);
