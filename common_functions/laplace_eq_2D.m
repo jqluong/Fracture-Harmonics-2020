@@ -21,9 +21,9 @@ function u = laplace_eq_2D(V, F, B)
     % \Omega in notes)
     L = cotmatrix(V,F);
     % find column indices corresponding to non-boundary condition vertices
-    L_ip = setdiff(1:length(L),V_bpos);
+    nbpos = setdiff(1:length(L),V_bpos);
     % find submatrix that operates only on non-boundary condition vertices
-    L_ii = L(L_ip, L_ip);
+    L_ii = L(nbpos, nbpos);
     
     % set up u with boundary condition
     u = zeros(length(V),1);
