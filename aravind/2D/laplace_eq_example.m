@@ -19,6 +19,8 @@ B = [BP1; BP2; BP3];
 % define boundary condition on boundary condition points
 % g = [g(BP1); g(BP2); g(BP3)]
 g = [-BP1(:,2).^2; BP2(:,2).^2; ones(length(BP3), 1)];
+
+% solve
 u = laplace_eq_2D(V, F, [B, g]);
 
 trisurf(F, V(:,1), V(:,2), zeros(size(V(:,1))), u, 'LineStyle','none');
