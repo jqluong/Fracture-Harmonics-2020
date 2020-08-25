@@ -11,8 +11,6 @@ function u = laplace_eq_2D(V, F, B)
     %
     % output is the solution u of \Delta u = 0 given boundary condition B
     
-    % extract boundary condition
-    g = B(:,3);
     
     % find indices for boundary condition vertices
     [~, V_bpos] = ismember(B(:,1:2), V, 'rows');
@@ -27,8 +25,9 @@ function u = laplace_eq_2D(V, F, B)
     % find submatrix that operates only on non-boundary condition vertices
     L_ii = L(L_ip, L_ip);
     
+    % set up u with boundary condition
     u = zeros(length(V),1);
-    u(V_bpos) = g;
+    u(V_bpos) = B(:,3);
 
     % if u_int = 0, L*u will have contributions from L_ib*u_b and L_bb*u_b,
     % so perform multiplication and extract values corresponding to 
