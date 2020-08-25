@@ -33,7 +33,7 @@ function u = laplace_eq_2D(V, F, B)
     % so perform multiplication and extract values corresponding to 
     % non-boundary condition points (L_ib*u_b)
     b = L*u;
-    b = b(L_ip);
+    b = b(nbpos);
     
     u_int = -1 * L_ii \ b;
     
