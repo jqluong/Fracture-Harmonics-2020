@@ -5,15 +5,11 @@ function u = laplace_eq_2D(V, F, B)
     %
     % F is face list
     %
-    % B is boundary conditions. B should be a k by 3 matrix, where the
-    % first column is x coordinate, second column is y coordinate, and
-    % third column is the value of u at the corresponding (x, y)
+    % B is boundary conditions. B should be a k by 2 matrix, where the
+    % first column is vertex position in V, and
+    % second column is the value of u at the corresponding (x, y)
     %
     % output is the solution u of \Delta u = 0 given boundary condition B
-    
-    
-    % find indices for boundary condition vertices
-    [~, V_bpos] = ismember(B(:,1:2), V, 'rows');
     
     % generate cotangent matrix
     % notation: L = cotangent matrix, subscript b for boundary (corresponds
@@ -21,21 +17,21 @@ function u = laplace_eq_2D(V, F, B)
     % \Omega in notes)
     L = cotmatrix(V,F);
     % find column indices corresponding to non-boundary condition vertices
-    nbpos = setdiff(1:length(L),V_bpos);
+    nbv = setdiff(1:length(L),B(:,1));
     % find submatrix that operates only on non-boundary condition vertices
-    L_ii = L(nbpos, nbpos);
+    L_ii = L(nbv, nbv);
     
     % set up u with boundary condition
     u = zeros(length(V),1);
-    u(V_bpos) = B(:,3);
+    u(B(:,1)) = B(:,2);
 
     % if u_int = 0, L*u will have contributions from L_ib*u_b and L_bb*u_b,
     % so perform multiplication and extract values corresponding to 
     % non-boundary condition points (L_ib*u_b)
     b = L*u;
-    b = b(nbpos);
+    b = b(nbv);
     
-    u_int = -1 * L_ii \ b;
+    u_int = L_ii \ b;
     
-    u(setdiff(1:end,V_bpos)) = u_int;
+    u(nbv) = -u_int;
 end
