@@ -2,11 +2,12 @@
 %requires gptoolbox
 
 %INPUTS:
+    %V = vertices
     %F = faces, |F|-by-3 matrix 
 %OUTPUTS:
     %D = |E|-by-3|F| sparse matrix , E = #edges
                                 
-function D = face_discontinuity_matrix_local(F)
+function D = face_discontinuity_matrix_local(V,F)
     temp = F';
     f_vert = temp(:);
     E = edges(F); %Edges
@@ -53,5 +54,9 @@ function D = face_discontinuity_matrix_local(F)
     end
     ii = ii-1;
 
-    D = sparse(Dpos(1:ii,1), Dpos(1:ii,2), Dpos(1:ii,3), lE,length(f_vert));
+  
+    
+    EL = edge_lengths(V,F);
+    weights = diag(abs(EL));
+    D = weights*sparse(Dpos(1:ii,1), Dpos(1:ii,2), Dpos(1:ii,3), lE,length(f_vert));
 end
