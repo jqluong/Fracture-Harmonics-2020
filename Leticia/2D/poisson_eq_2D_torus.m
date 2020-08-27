@@ -4,12 +4,17 @@
 % read .obj file
 [V,F] = readOBJfast('torusNF.obj');
 
+tsurf(F,V)
+
 % vectorize matrix F to obtain row location of vertices in matrix V
 S = unique(reshape(F,[],1));
 
-% find dΩ vertice indices, recall boundary is z = 0
-bo = S(V(S,3) == 0); 
+% find dΩ vertice indices, recall boundary is z = 0, here R = 1.25, r =
+% 0.75
+bo_in = S(normrow(V) <= 0.79); 
+bo_out = S(1.22 <= normrow(V));
 
+bo = [bo_in; bo_out];
 
 % find Ω vertice indices
 bi = setdiff(S,bo);
