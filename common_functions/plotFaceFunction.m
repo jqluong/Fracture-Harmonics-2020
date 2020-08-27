@@ -1,4 +1,5 @@
 function plotFaceFunction(V, F, faceFunction)
+    %face function is F x 3
     [m,~] = size(faceFunction);
     figure(1)
     hold on
