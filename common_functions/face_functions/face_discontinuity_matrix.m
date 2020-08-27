@@ -56,7 +56,6 @@ function D = face_discontinuity_matrix_local(V,F)
 
   
     
-    EL = edge_lengths(V,F);
-    weights = diag(abs(EL));
+    weights = face_edge_lengths_matrix(V,F);
     D = weights*sparse(Dpos(1:ii,1), Dpos(1:ii,2), Dpos(1:ii,3), lE,length(f_vert));
 end
