@@ -1,9 +1,10 @@
-function plotFaceFunction(V, F, faceFunction)
-    %face function is F x 3
+function face_plotting(V, F, faceFunction)
+    %Face function is |F| x 1
+    faceFunction = transpose(reshape(faceFunction, 3, length(faceFunction)/3));
     [m,~] = size(faceFunction);
     figure(1)
     for i = 1:m
-        if i == 1
+        if i == 2
             hold on
         end
         facePiece = faceFunction(i,:);
