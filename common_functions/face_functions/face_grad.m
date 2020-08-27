@@ -1,4 +1,4 @@
-function G = grad_face(V, F)
+function G = face_grad(V, F)
     % find gradient matrix for face defined functions.
     % input: 
     %        vertex matrix V, face matrix F
