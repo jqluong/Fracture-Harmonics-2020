@@ -6,7 +6,9 @@ F = delaunay(points);
 u = zeros(3*size(F,1),1);
 u(1:3)=1;
 
-D = discontinuity_matrix(F);
+D = face_discontinuity_matrix(V,F);
+Du = D*u;
 
-Du = sparse(D*u);
-spy(D,'b',5);
+
+
+
