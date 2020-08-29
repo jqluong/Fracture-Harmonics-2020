@@ -20,14 +20,26 @@ function u = laplace_eq_2D_quadprog(V, F, B)
     
     
     % generate cotagent matrx
-    L = cotmatrix(V,F);
+    L = - cotmatrix(V,F);
     
     % generate boundary condition vector
-    g = zeros(n,1);
-    g(B(1:k,1)) = B(1:k,2);
-
+    g(1:k) = B(1:k,2);
+    
+    % matrix used in equality constraint Aeq*u = g
+    
+    Aeq_i = zeros(k,1);
+    Aeq_j = zeros(k,1);
+    Aeq_v = zeros(k,1);
+    
+    for m = 1:k
+        Aeq_i(m) = m;
+        Aeq_j(m) = B(m,1);
+        Aeq_v(m) = 1;
+    end
+    
+    Aeq = sparse(Aeq_i,Aeq_j,Aeq_v,k,n);
     
     % solve using quadprog
-    u = quadprog(L, zeros(n,1), [],[],speye(n),g);
+    u = quadprog(L, zeros(n,1), [],[],Aeq,g);
     
 end
