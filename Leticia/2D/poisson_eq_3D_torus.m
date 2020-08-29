@@ -4,7 +4,9 @@
 % read .obj file
 [V,F] = readOBJfast('torusNF.obj');
 
-tsurf(F,V)
+x = V(1:n,1);
+y = V(1:n,2);
+z = V(1:n,3);
 
 % vectorize matrix F to obtain row location of vertices in matrix V
 S = unique(reshape(F,[],1));
@@ -16,34 +18,37 @@ bo_out = S(1.22 <= normrow(V));
 
 bo = [bo_in; bo_out];
 
-% find Ω vertice indices
-bi = setdiff(S,bo);
-
 
 % write down boundary condition
 g = V(bo,1) + V(bo,2);
+%g = zeros(length(bo),1);
 
-% write down vector of solution
-u = zeros(length(S),1);
-u(bo) = g(S(1:size(g)));
 
 % cotagent matrix using gptoolbox
 L = cotmatrix(V,F);
 
-% extract from matrix LΩΩ i.e. the part of L acting on bi
-Lbi = L(bi,bi);
 
-% find the term LΩdΩ*g := b
-%
-% multiply with 0 entries replacing bi
-b = L*u;
-% then select only the corresponding entries to bi
-b = b(bi);
+% call quadprog to find solution (ignore '2D' in the function name)
+u = laplace_eq_2D_quadprog(V,F,[bo,g]);
 
-% solve
-ubi = Lbi \ b;
+% plot solution
 
-u(bi) = -ubi;
+%scatter3(x,y,z,40,u,'filled')    % draw the scatter plot
+%ax = gca;
+%ax.XDir = 'reverse';
+%view(-2,2)
+%xlabel('x')
+%ylabel('y')
+%zlabel('z')
+%axis equal
+
+%cb = colorbar;  
+
+p = patch('Faces',F,'Vertices',V,'FaceVertexCData',u);
+p.FaceColor = 'interp';
+colorbar
+axis equal
+title('\nabla^2u = 0, with u = x + y at z = 0');
 
 
 
