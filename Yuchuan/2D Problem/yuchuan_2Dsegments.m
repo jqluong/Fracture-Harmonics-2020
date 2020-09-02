@@ -3,9 +3,8 @@ points = [x(:), y(:)];
 V = [points zeros(size(points,1),1)];
 F = delaunay(points);
 
-u = zeros(3*size(F,1),1);
-u(1:2)=1;
-u(15) = 1;
+u = ones(3*size(F,1),1);
+u(1:2) = 8;
 
 
 
@@ -19,4 +18,7 @@ Du = sparse(D*u);
 G = face_grad(V,F);
 Gu = sparse(G*u);
 
-M = face_area_matrix(V,F);
+dir = u' * face_GMG(V,F) * u;
+
+check = face_dirichlet_energy(V,F,u);
+
