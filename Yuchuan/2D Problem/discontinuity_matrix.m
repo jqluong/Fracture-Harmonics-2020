@@ -5,7 +5,9 @@
 %INPUTS:
     %F = faces, |F|-by-3 matrix 
 %OUTPUTS:
-    %D = |E|-by-3|F| sparse matrix , E = #edges
+    %D = 2|E|-by-3|F| sparse matrix , E = #edges
+    
+%D*u(i) and D*u(i+|E|) measures the discontinuity at edge i (at the two endpoints)
                                 
 
 
@@ -41,17 +43,17 @@ for i = 1:size(E,1)
     end
 end
     
+N = size(E,1);
+D = zeros(2*N,length(f_vert));
     
-D = zeros(size(E,1),length(f_vert));
-    
-for m = 1:size(E,1)
+for m = 1:N
     if c(m,1) <= 0
         continue;
     else 
-        D(m,c(m,1)) = 1/2;
-        D(m,c(m,2)) = 1/2;
-        D(m,d(m,1)) = -1/2;
-        D(m,d(m,2)) = -1/2;
+        D(m,c(m,1)) = 1;
+        D(m,d(m,1)) = -1;
+        D(m+N,c(m,2)) = 1;
+        D(m+N,d(m,2)) = -1;
     end
     
 end
