@@ -1,4 +1,4 @@
-%% Computes discontinuity operator D 
+%% Computes weighted discontinuity operator D 
 
 %requires gptoolbox
 
@@ -11,7 +11,7 @@
                                 
 
 
-function [D] = discontinuity_matrix(F)
+function [D] = discontinuity_matrix(V,F)
 
 temp = F';
 f_vert = temp(:);
@@ -57,8 +57,10 @@ for m = 1:N
     end
     
 end
-    
-D = sparse(D);
+   
+W = face_edge_lengths_matrix(V,F);
+rep_W = sparse(kron(eye(2),W));
+D = rep_W*sparse(D);
     
 end
 

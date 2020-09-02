@@ -1,16 +1,22 @@
+%% Create mesh
 [x, y] = meshgrid(1:10, 1:10);
 points = [x(:), y(:)];
 V = [points zeros(size(points,1),1)];
 F = delaunay(points);
 
-u = zeros(3*size(F,1),1);
-u(1)=1;
-u(2) = 1;
-u(11) = 1;
+%% Eigen-problem
+M_inv = inv(face_area_matrix(V,F));
+GMG = face_GMG(V,F);
+H = full((1/2) * M_inv * GMG);
+[eiv,eit] = eig(H);
+
+
+%% Plotting
+
+face_plotting(V,F,eiv(:,164)); %plot 1,2,164 and 325
 
 
 
-G = face_grad(V,F);
-Gu = G*u;
 
-face_plot(V,F,u);
+
+
