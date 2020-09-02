@@ -22,9 +22,11 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     [k,~] = size(F);
    
     % generate gradient matrix to act on [ u t ]
-    G = face_grad(V,F);  % size(G) = 2k x 3k
-    O = zeros(2*k);
-    G_tilde = [ G O ];
+    G =  face_grad(V,F);  % size(G) = 3k x 3k
+    tf = issymmetric(G)
+    O_right = zeros(3*k,m); 
+    O_bottom = zeros(m,3*k+m);
+    G_tilde = [ G O_right; O_bottom ];
     
     % generate discontinuity matrix
     D = face_discontinuity_matrix(V,F);
@@ -32,7 +34,7 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     % generate vector f used in the constraint
     u_placeholder = zeros(3*k,1);
     t_placeholder = ones(m,1);
-    f = [ u_placeholder t_placeholder ];
+    f = [ u_placeholder; t_placeholder ];
     
     % generate |E|x|E| identity matrix used in the constraint block matrix
     I = speye(m);
@@ -43,7 +45,7 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     
     y = quadprog(G_tilde,f,A,b);
     
-    u = y(1:3*m);
+    u = y(1:3*k);
     
     
 end
