@@ -3,12 +3,8 @@ points = [x(:), y(:)];
 V = [points zeros(size(points,1),1)];
 F = delaunay(points);
 
-u = zeros(3*size(F,1),1);
-u(1:3)=1;
+u = ones(3*size(F,1),1);
+u(1:2) = 8;
 
-D = face_discontinuity_matrix(V,F);
-Du = D*u;
-
-
-
-
+D = discontinuity_matrix(V,F);
+Du = sparse(D*u);

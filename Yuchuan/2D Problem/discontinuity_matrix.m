@@ -1,15 +1,17 @@
-%% Computes discontinuity operator D 
+%% Computes weighted discontinuity operator D 
 
 %requires gptoolbox
 
 %INPUTS:
     %F = faces, |F|-by-3 matrix 
 %OUTPUTS:
-    %D = |E|-by-3|F| sparse matrix , E = #edges
+    %D = 2|E|-by-3|F| sparse matrix , E = #edges
+    
+%D*u(i) and D*u(i+|E|) measures the discontinuity at edge i (at the two endpoints)
                                 
 
 
-function [D] = discontinuity_matrix(F)
+function [D] = discontinuity_matrix(V,F)
 
 temp = F';
 f_vert = temp(:);
@@ -41,22 +43,24 @@ for i = 1:size(E,1)
     end
 end
     
+N = size(E,1);
+D = zeros(2*N,length(f_vert));
     
-D = zeros(size(E,1),length(f_vert));
-    
-for m = 1:size(E,1)
+for m = 1:N
     if c(m,1) <= 0
         continue;
     else 
-        D(m,c(m,1)) = 1/2;
-        D(m,c(m,2)) = 1/2;
-        D(m,d(m,1)) = -1/2;
-        D(m,d(m,2)) = -1/2;
+        D(m,c(m,1)) = 1;
+        D(m,d(m,1)) = -1;
+        D(m+N,c(m,2)) = 1;
+        D(m+N,d(m,2)) = -1;
     end
     
 end
-    
-D = sparse(D);
+   
+W = face_edge_lengths_matrix(V,F);
+rep_W = sparse(kron(eye(2),W));
+D = rep_W*sparse(D);
     
 end
 

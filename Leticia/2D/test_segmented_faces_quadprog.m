@@ -1,4 +1,3 @@
-
 % generate circle
 s = 100;
 theta = [0:2*pi()/s:2*pi()]';
