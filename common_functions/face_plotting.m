@@ -1,5 +1,5 @@
 function face_plotting(V, F, faceFunction)
-    %Face function is |F| x 1
+    %Face function is 3*|F| x 1
     faceFunction = transpose(reshape(faceFunction, 3, length(faceFunction)/3));
     [m,~] = size(faceFunction);
     figure(1)
