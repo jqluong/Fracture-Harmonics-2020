@@ -23,9 +23,9 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
    
     % generate gradient matrix to act on [ u t ]
     cellArea = repelem(power(doublearea(V, F)/2, 0.5), 2);
-    M = spdiags(cellArea, 0, k*2, k*2);
+    %M = spdiags(cellArea, 0, k*2, k*2);
     
-    G = transpose(face_grad(V,F)) * M * face_grad(V,F);  % size(G) = 3k x 3k
+    G = transpose(face_grad(V,F)) * speye(k*2,k*2) * face_grad(V,F);  % size(G) = 3k x 3k
     tf = issymmetric(G)
     O_right = zeros(3*k,m); 
     O_bottom = zeros(m,3*k+m);
@@ -45,7 +45,7 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     I = speye(m);
     
     % generate inequality constraint matrix and vector
-    A = [ -D -I; D I];
+    A = [ -D -I; D -I];
     b = zeros(2*m,1);
     
     %boundary conditions
@@ -89,6 +89,18 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     y = quadprog(G_tilde,f,A,b,equalityMatrix,equalityConstraint);
     
     u = y(1:3*k);
-    
-    
+    %Constructing a function for debugging
+    v = ones(length(u),1);
+    for i = 1:length(BP1)
+        [r,~] = size(F);
+        for j = 1:r
+            if (BP1(i) == F(j,1) || BP1(i) == F(j,2) || BP1(i) == F(j,3))
+                v(3*(j-1) + 1) = 0;
+                v(3*(j-1) + 2) = 0;
+                v(3*(j-1) + 3) = 0;
+            end
+        end
+    end
+norm(face_grad(V,F)*v,2) + norm(D*v,1)
+norm(face_grad(V,F)*u,2) + norm(D*u,1)
 end
