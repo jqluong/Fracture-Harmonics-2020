@@ -48,7 +48,45 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     A = [ -D -I; D I];
     b = zeros(2*m,1);
     
-    y = quadprog(G_tilde,f,A,b);
+    %boundary conditions
+    B = unique(reshape(outline(F),[],1));
+    BP1 = B(V(B,1) == 0);
+    BP2 = B(V(B,1) == 1);
+    
+    %bad way to get locations of boundary vertices in face based function
+    %synatx fix later
+    BP1new = [];
+    for i = 1:length(BP1)
+        [r,s] = size(F);
+        for j = 1:r
+            for k = 1:s
+                if F(j,k) == BP1(i)
+                    BP1new = [BP1new 3*(j-1) + k];
+                end
+            end
+        end
+        
+    end
+    BP1new = BP1new';
+    BP2new = [];
+    for i = 1:length(BP2)
+        [r,s] = size(F);
+        for j = 1:r
+            for k = 1:s
+                if F(j,k) == BP2(i)
+                    BP2new = [BP2new 3*(j-1) + k];
+                end
+            end
+        end
+        
+    end
+    BP2new = BP2new';
+    [k,~] = size(F);
+    
+    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + m, 1);
+    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + m, 3*k + m);
+    
+    y = quadprog(G_tilde,f,A,b,equalityMatrix,equalityConstraint);
     
     u = y(1:3*k);
     
