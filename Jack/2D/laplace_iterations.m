@@ -1,83 +1,103 @@
-%jack's testing script, it might get moved to my folder later
-%works with normal old face functions
+%Finding eigenvalues for the Laplacian by iteratively minimizng Dirichlet
+%Energy.
+
+%Borrowing functions from this folder
 mkdir('vertex_functions')
 addpath('vertex_functions')
-%x = 0:.1:1;
-%y = x';
-%[x,y] = meshgrid(x,y);
-%x = x(:);
-%y = y(:);
-s = 100;
-theta = [0:2*pi()/s:2*pi()]';
-x = cos(theta);
-y = sin(theta);
-%[x,y] = meshgrid(x,y);
+
+%Square Mesh
+x = [0:.1:1 1.5];
+y = x';
+[x,y] = meshgrid(x,y);
+x = x(:);
+y = y(:);
+
+%Circular Mesh
+%s = 100;
+%theta = [0:2*pi()/s:2*pi()]';
+%x = cos(theta);
+%y = sin(theta);
+
+%Generate Mesh
 F = delaunay(x,y);
 V = [x y];
-max_iterations = 5;
+
+%Set number of iterations
+max_iterations = 3;
 [m,~] = size(V);
-u_prev = zeros(m, max_iterations - 1);
+%Store u values into this matrix where u(:,i) is the ith eigenfunction
+u_prev = zeros(m, max_iterations);
 for i = 1:max_iterations
     u = laplace_eq_2D_quadprog_iterations(V, F, u_prev, i, max_iterations);
     u_prev(:,i) = u;
 end
-%u = laplace_eq_2D_seg_quadprog(V,F);
-%face_plotting(V,F,u)
+%how to plot triangle function (reminder, for me):
+%plot_surf(V,F,u)
 
 
 function u = laplace_eq_2D_quadprog_iterations(V, F, u_prev, iterations, max_iterations)
-    % solve laplace's equation on a 2D triangle mesh surface using quadprog
-    % for 'segmented' functions, i.e. functions with face edges that may
-    % not match
-    %
-    % V is matrix of vertex position
-    %
-    % F is matrix of face indices
-    %
-    % B is boundary conditions. B should be a k by 2 matrix, where the
-    % first column is vertex position in V, and
-    % second column is the value of u at the corresponding (x, y)
-    %
-    % output is the solution u of \Delta u = 0 given boundary condition B
-    %
-    % the format of solution u is u = [ u(F1_v1) u(F1_v2) u(F1_v3) u(F2_v1) u(F2_v2) u(F2_v3) ... ]
+    % solve laplace's equation via quadprog.  Obtain eigenfunctions by
+    % adding the constraints that u^T*M*u = 1 and u_i^T*M*u_j = 0 for all j
+    % less than i.
     
     [n,~] = size(V);
     [k, ~] = size(F);
     err = 10^-5;
     if iterations == 1
+        %Setting up matrices
+        %Define gradient matrix
         G = grad(V,F);
+        %Define M matrix for G^TMG
         %M = speye(2*k);
         cellArea = repelem(power(doublearea(V, F)/2, 0.5), 2);
         M = spdiags(cellArea, 0, k*2, k*2);
+        %dblA = doublearea(V,F);
+        %M = repdiag(diag(sparse(dblA)/2),size(V,2));
+        %Define a weighting matrix for u^T*M*u (weighted dot product)
         Mu = speye(n,n);
+        
+        %Create a random unit vector to simulate u^T*M*u = 1
         c = rand(n,1);
         c = c/norm(c);
+        
+        %Keep solving until u^T*M*u is close enough to 1
         u = quadprog(2*G'*M*G, [], [], [], transpose(Mu*c), 1);
-        while abs(u'*Mu*u - 1) >= err
+        while abs((u'*Mu*u) - 1) >= err
+            %If the "l2 norm" of u is not close enough to 1, set c to
+            %previous u and try again
             c = u/norm(u);
             u = quadprog(2*G'*M*G, [], [], [], transpose(Mu*c), 1);
         end
     else
+        %This is the case where you need to enforce orthogonality
+        %constraints on u
+        
         G = grad(V,F);
         %M = speye(2*k);
         cellArea = repelem(power(doublearea(V, F)/2, 0.5), 2);
         M = spdiags(cellArea, 0, k*2, k*2);
         Mu = speye(n,n);
-        %generate c here
+        %dblA = doublearea(V,F);
+        %M = repdiag(diag(sparse(dblA)/2),size(V,2));
+        
+        %Generate a random unit vector c that is orthongal to the previous
+        %u's
         nullspace = null(transpose(Mu*u_prev));
         c = nullspace(:,1);
         c = c/norm(c);
-        %generate linear constraint here
-        A = zeros(max_iterations - 1, n);
+        %Generate linear constraint here
+        A = zeros(max_iterations, n);
         for i = 1:max_iterations
             if i == max_iterations
-                A(i,1:n) = transpose(Mu*c);
+                %Enforce l2 constraint
+                A(i,:) = transpose(Mu*c);
             else
-                A(i,1:n) = transpose(Mu*u_prev(:,i));
+                %Enforce orthogonality constraint
+                A(i,:) = transpose(Mu*u_prev(:,i));
             end
         end
         b = [zeros(max_iterations - 1,1);1];
+        %Keep solving until u^TMu is close enough to 1
         u = quadprog(2*G'*M*G, [], [],[], A, b);
         while abs(u'*Mu*u - 1) >= err
             c = u/norm(u);
