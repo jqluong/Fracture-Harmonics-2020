@@ -11,15 +11,15 @@
 %V = points;
 %F = delaunay(points);
 
-n = 512; % boundary spacing: 2pi/n
-th = [0:2*pi()/n:2*pi()]';
+k = 512; % boundary spacing: 2pi/n
+th = [0:2*pi()/k:2*pi()]';
 x = cos(th);
 y = sin(th);
 
-[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.01);
+[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.001);
 
 %% Initialization 
-n = 20; % number of eigenmodes to find
+n = 25; % number of eigenmodes to find
 U = zeros(length(V), n);
 
 %% Find eigenmodes
@@ -38,11 +38,13 @@ function Z = laplacian_eigenmodes_iterative(V, F, U, n)
     opts = optimoptions(@quadprog, 'Algorithm', 'interior-point-convex', 'OptimalityTolerance', 1e-6, 'Display', 'off');
 
     G = grad(V, F);
-    M = sparse(1:size(G,1), 1:size(G,1), 1/6*kron([1;1],doublearea(V,F)));
-    MG = M.^0.5 * G;
-    GMG = MG'*MG;
+    A = sparse(1:size(G,1), 1:size(G,1), 1/6*kron([1;1],doublearea(V,F)));
+    MG = A.^0.5 * G;
+    GMG = MG'*MG; % quadratic optim term
+    M = massmatrix(V,F);
     
     for i = 1:n % find n eigenmodes
+        disp(i);
         iterative_computation(i);
     end
     
@@ -51,11 +53,12 @@ function Z = laplacian_eigenmodes_iterative(V, F, U, n)
     function iterative_computation(i)
         c = rand(length(U), 1);
         c = c / norm(c);
-        A = U(:,1:(i-1))';
-        beq = [zeros((i-1), 1); 1];
+        Ai = (U(:,1:(i-1))')*M; % linear equality constraint - orthgonal to previous solutions
+        beq = [zeros((i-1), 1); 1]; % linear equality constraint
 
+        %while abs(1 - c'*M*U(:,i)) > TOL % this does not work :\
         while norm(c - U(:,i)) > TOL
-            Aeq = [A; c'];
+            Aeq = [Ai; c'*M]; % lienar equality constraint - append "unit norm"
             u = quadprog(GMG, [], [], [], Aeq, beq, [], [], [], opts);
             U(:,i) = c;
             c = u/norm(u);
@@ -66,7 +69,8 @@ end
 function eigenmodes_gif(V, F, U, fn)
     m = max(max(abs(U)));
     n = size(U, 2);
-    h = figure;
+    h = figure;  
+    set(gcf,'Color','w');
     axis tight manual;
     delay = 0.5; % gif delay time
     
@@ -96,5 +100,6 @@ function eigenmodes_gif(V, F, U, fn)
         grid off
         axis off
         axis equal
+        set(gcf,'Color','w');
     end
 end
