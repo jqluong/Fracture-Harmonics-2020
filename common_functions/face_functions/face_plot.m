@@ -1,22 +1,18 @@
-function face_plot(V,F,u)
+function face_plot(V, F, u)
     % plot face valued function
-    % this is slow becuase it has to duplicate elments of V as like the
-    % gradient
+    %Face function is 3*|F| x 1
     
-    F_n = reshape(1:numel(F),3, [])';
-
-    V_n = zeros(3*size(F,1), size(V,2));
-    for i = 1:length(F)
-        j = 3*i - 2;
-        V_n(j: j+2,:) = V(F(i,:)',:);
+    u = transpose(reshape(u, 3, length(u)/3));
+    [m,~] = size(u);
+    figure(1)
+    for i = 1:m
+        if i == 2
+            hold on
+        end
+        facePiece = u(i,:);
+        trisurf([1 2 3], V(F(i,:), 1), V(F(i,:), 2), facePiece(:));
     end
-    
-    tsurf(F_n, [V_n u], fphong, falpha(1,0));
-    
     colormap(cbrewer('RdYlBu',40));
-    colorbar();
-    
-    axis equal
-    grid off;
-    axis off;
+    colorbar
+    hold off
 end
