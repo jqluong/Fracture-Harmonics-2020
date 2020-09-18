@@ -6,7 +6,7 @@
 %OUTPUTS
     %EL = |E|-by-|E| matrix
     
-function [EL] = face_edge_lengths_matrix(V,F)
+function EL = face_edge_lengths_matrix(V,F)
     
     E = edges(F);
     d = zeros(size(E,1),1);
@@ -17,5 +17,6 @@ function [EL] = face_edge_lengths_matrix(V,F)
         d(i) = sqrt((v1(1)-v2(1))^2 + (v1(2)-v2(2))^2 + (v1(3)-v2(3))^2);
     end
     
-    EL = diag(d);
+    %EL = diag(d);
+    EL = sparse(1:length(d), 1:length(d), d);
 end

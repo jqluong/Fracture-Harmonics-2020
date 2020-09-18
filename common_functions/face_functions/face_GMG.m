@@ -8,10 +8,8 @@
 %OUTPUTS
     %GMG = 3|F|-by-3|F| sparse matrix
     
-    function [GMG] = face_GMG(V,F)
-    
+function [GMG] = face_GMG(V,F)   
     G = face_grad(V,F);
     M = 3*face_area_matrix(V,F);
-    GMG = sparse((G')*M*G);
-    
-    end
+    GMG = (G')*M*G;   
+end

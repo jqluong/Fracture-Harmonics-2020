@@ -10,10 +10,8 @@
     %note: M is a positive definite diagonal matrix for all non-degenerate
     %meshes
     
-    function [M] = face_area_matrix(V,F)
-    
-    dblA = (1/2)*doublearea(V,F);
-    rep_area = repelem(dblA,3);
-    M = sparse((1/3)*diag(rep_area));
-
-    end
+function M = face_area_matrix(V,F)   
+    dblA = doublearea(V,F);
+    N = 3*length(F);
+    M = sparse(1:N, 1:N, 1/6*repelem(dblA,3));
+end

@@ -1,31 +1,32 @@
 %% Compute eigenmodes of Laplacian on mesh for vertex functions
-
+% ***CURRENTLY DOES NOT WORK***
 %% Create mesh
-%f = 20;
-%x = 0:1/f:1;
-%y = 0:1/f:2;
+f = 20;
+x = 0:1/f:1;
+y = 0:1/f:2;
 
-%[X,Y] = meshgrid(x,y);
+[X,Y] = meshgrid(x,y);
 
-%V = [X(:), Y(:)];
-%F = delaunay(V);
+V = [X(:), Y(:)];
+F = delaunay(V);
 
-k = 512; % boundary spacing: 2pi/n
-th = [0:2*pi()/k:2*pi()]';
-x = cos(th);
-y = sin(th);
+%k = 512; % boundary spacing: 2pi/n
+%th = [0:2*pi()/k:2*pi()]';
+%x = cos(th);
+%y = sin(th);
 
-[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.01);
+%[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.01);
 
 %% Initialization 
-n = 25; % number of eigenmodes to find
-U = zeros(length(V), n);
+n = 4; % number of eigenmodes to find
+U = zeros(3*length(F), n);
 
 %% Find eigenmodes
 U = laplacian_eigenmodes_iterative(V, F, U, n);
 
 %% Plot eigenmodes
-eigenmodes_gif(V, F, U, 'C:\Users\aravi\Desktop\laplacianeigenmodes.gif');
+%eigenmodes_gif(V, F, U, 'C:\Users\aravi\Desktop\laplacianeigenmodes.gif');
+face_plot(V, F, U(:,4));
 
 %% Iterative method function
 function Z = laplacian_eigenmodes_iterative(V, F, U, n)
@@ -33,14 +34,16 @@ function Z = laplacian_eigenmodes_iterative(V, F, U, n)
     % U is the matrix to store eigenmodes
     % n is the number of iterations, matches #columns of U
     
-    TOL = 0.0001;
+    TOL = 0.001;
     opts = optimoptions(@quadprog, 'Algorithm', 'interior-point-convex', 'OptimalityTolerance', 1e-6, 'Display', 'off');
 
-    G = grad(V, F);
-    A = sparse(1:size(G,1), 1:size(G,1), 1/6*kron([1;1],doublearea(V,F)));
-    MG = A.^0.5 * G;
+    G = face_grad(V, F);
+    A = face_area_matrix(V, F);
+    MG = A.^0.5*G;
     GMG = MG'*MG; % quadratic optim term
-    M = massmatrix(V,F);
+    M = diag(massmatrix(V, F));
+    M = vertex_to_face(F, M);
+    M = sparse(1:length(M), 1:length(M), M);
     
     for i = 1:n % find n eigenmodes
         disp(i);
@@ -61,6 +64,7 @@ function Z = laplacian_eigenmodes_iterative(V, F, U, n)
             u = quadprog(GMG, [], [], [], Aeq, beq, [], [], [], opts);
             U(:,i) = c;
             c = u/norm(u);
+            disp(norm(c - U(:,i)))
         end
     end
 end
