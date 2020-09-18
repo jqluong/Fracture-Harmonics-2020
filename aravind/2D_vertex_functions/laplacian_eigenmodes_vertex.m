@@ -19,7 +19,7 @@ y = sin(th);
 [V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.01);
 
 %% Initialization 
-n = 30; % number of eigenmodes to find
+n = 20; % number of eigenmodes to find
 U = zeros(length(V), n);
 
 %% Find eigenmodes
@@ -38,7 +38,7 @@ function Z = laplacian_eigenmodes_iterative(V, F, U, n)
     opts = optimoptions(@quadprog, 'Algorithm', 'interior-point-convex', 'OptimalityTolerance', 1e-6, 'Display', 'off');
 
     G = grad(V, F);
-    M = sparse(1:size(G,1), 1:size(G,1), 1/3*kron([1;1],doublearea(V,F)));
+    M = sparse(1:size(G,1), 1:size(G,1), 1/6*kron([1;1],doublearea(V,F)));
     MG = M.^0.5 * G;
     GMG = MG'*MG;
     
