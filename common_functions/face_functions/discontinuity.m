@@ -4,12 +4,13 @@
 
 %INPUTS:
     %F = faces, |F|-by-3 matrix 
+    %V = vertices, |V|-by-3 matrix
 %OUTPUTS:
     %D = 2|E|-by-3|F| sparse matrix , E = #edges
     
 %D*u(i) and D*u(i+|E|) measures the discontinuity at edge i (at the two endpoints)
                                 
-function [D] = discontinuity_matrix(V,F)
+function [D] = discontinuity(V,F)
     temp = F';
     f_vert = temp(:);
     E = edges(F); %Edges
@@ -17,7 +18,7 @@ function [D] = discontinuity_matrix(V,F)
     c = zeros(size(E,2),2);
     d = zeros(size(E,2),2);
     lE = length(E);
-    lFv = length(F_vert);
+    lFv = length(f_vert);
 
     for i = 1:size(E,1)
         if ET(i,2) == -1
