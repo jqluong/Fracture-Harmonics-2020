@@ -1,5 +1,14 @@
 function  eigenmodes_quadprog(V,F,mu,num)
 
+% for test: generate circle
+s = 100;
+theta = [0:2*pi()/s:2*pi()]';
+x = cos(theta);
+y = sin(theta);
+
+[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.001);
+
+
 CONVERG = 0.001;        % convegence criteria used to stop iterations
 
 [n,~] = size(V);
