@@ -13,7 +13,7 @@ H = full((1/2) * M_inv * GMG);
 
 %% Plotting
 
-face_plotting(V,F,eiv(:,1)); %plot 1,2,164 and 325
+face_plotting(V,F,eiv(:,3)); %plot 1,2,164 and 325
 
 
 
