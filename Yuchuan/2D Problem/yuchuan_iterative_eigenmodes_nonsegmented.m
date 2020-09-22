@@ -26,7 +26,7 @@ for i = 1:n_iter
     u_old = sparse(size(V,1),1);
     u_new = ones(size(V,1),1);
     
-    while norm(u_new - u_old) > 1e-4
+    while (u_new - u_old)' * M * (u_new - u_old) > 1e-4
         u_old = u_new;
         Aeq = [(c')*M ; (U')*M];
         beq = sparse(1,1,1,size(V,1)+1,1);
