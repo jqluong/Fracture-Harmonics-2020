@@ -83,12 +83,12 @@ D = discontinuity(V,F);
 
 
 %% (3) argmin u^t * GMG * u + mu*|D*u| 
-n_iter =  2; 
+n_iter =  3; 
 U = zeros(3*size(F,1),3*size(F,1)); %i_th col stores the i_th eigenmode
 c = sparse(1,1,1,3*size(F,1),1); %OR
 c = c/sqrt(((c')*M*c));
 k = size(D,1);
-mu = 9e-7;
+mu = 1e-7;
 options = optimset('MaxIter',200,'TolX',1e-8);
 for i = 1:n_iter
     u_old = sparse(3*size(F,1),1);
@@ -121,7 +121,16 @@ end
 
 
 %% Plot eigenmodes
+subplot(1,3,1)
 face_plotting(V,F,U(:,1));
+zlim([-0.5 0.5]);
 
+subplot(1,3,2)
+face_plotting(V,F,U(:,2));
+zlim([-0.5 0.5]);
+
+subplot(1,3,3)
+face_plotting(V,F,U(:,3));
+zlim([-0.5 0.5]);
 
 
