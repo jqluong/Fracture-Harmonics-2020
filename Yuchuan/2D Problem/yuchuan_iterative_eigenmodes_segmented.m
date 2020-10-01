@@ -10,7 +10,7 @@ F = delaunay(points);
 
 %% Initialization 
 GMG = face_GMG(V,F);
-M = face_area_matrix(V,F);
+M = face_massmatrix(V,F);
 D = discontinuity(V,F);
 
 
