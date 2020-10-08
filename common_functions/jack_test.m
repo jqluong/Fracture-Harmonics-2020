@@ -11,12 +11,12 @@ F = delaunay(x,y);
 V = [x y];
 max_iterations = 5;
 [m,~] = size(V);
-u_prev = zeros(m*(max_iterations - 1), 1);
-for i = 1:max_iterations
-    u = laplace_eq_2D_quadprog_iterations(V, F, u_prev, i);
-    u_prev(i*(m-1) + 1: m*i) = u;
-end
-%u = laplace_eq_2D_seg_quadprog(V,F);
+%u_prev = zeros(m*(max_iterations - 1), 1);
+%for i = 1:max_iterations
+%    u = laplace_eq_2D_quadprog_iterations(V, F, u_prev, i);
+%    u_prev(i*(m-1) + 1: m*i) = u;
+%end
+u = laplace_eq_2D_seg_quadprog(V,F);
 %face_plotting(V,F,u)
 
 

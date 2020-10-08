@@ -33,7 +33,7 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     
     % generate discontinuity matrix
     V = [V zeros(length(V))];
-    D = face_discontinuity_matrix(V,F);
+    D = discontinuity(V,F);
     V = V(:,1:2);
     
     % generate vector f used in the constraint
