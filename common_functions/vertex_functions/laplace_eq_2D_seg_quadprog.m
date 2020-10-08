@@ -27,8 +27,8 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     
     G = transpose(face_grad(V,F)) * speye(k*2,k*2) * face_grad(V,F);  % size(G) = 3k x 3k
     tf = issymmetric(G)
-    O_right = zeros(3*k,m); 
-    O_bottom = zeros(m,3*k+m);
+    O_right = zeros(3*k,2*m); 
+    O_bottom = zeros(2*m,3*k+2*m);
     G_tilde = [ G O_right; O_bottom ];
     
     % generate discontinuity matrix
@@ -38,15 +38,15 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     
     % generate vector f used in the constraint
     u_placeholder = zeros(3*k,1);
-    t_placeholder = ones(m,1);
+    t_placeholder = ones(2*m,1);
     f = [ u_placeholder; t_placeholder ];
     
     % generate |E|x|E| identity matrix used in the constraint block matrix
-    I = speye(m);
+    I = speye(2*m);
     
     % generate inequality constraint matrix and vector
-    A = [ -D -I; D -I];
-    b = zeros(2*m,1);
+    A = [ D -I; -D -I];
+    b = zeros(4*m,1);
     
     %boundary conditions
     B = unique(reshape(outline(F),[],1));
@@ -83,8 +83,8 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     BP2new = BP2new';
     [k,~] = size(F);
     
-    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + m, 1);
-    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + m, 3*k + m);
+    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + 2*m, 1);
+    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + 2*m, 3*k + 2*m);
     
     y = quadprog(G_tilde,f,A,b,equalityMatrix,equalityConstraint);
     
