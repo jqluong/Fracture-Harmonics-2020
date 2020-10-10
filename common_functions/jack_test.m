@@ -4,15 +4,16 @@ mkdir('vertex_functions')
 addpath('vertex_functions')
 mkdir('face_functions')
 addpath('face_functions')
-x = 0:.1:1;
-y = x';
-[x,y] = meshgrid(x,y);
-x = x(:);
-y = y(:);
-F = delaunay(x,y);
-V = [x y];
-max_iterations = 5;
-[m,~] = size(V);
+%x = 0:.1:1;
+%y = x';
+%[x,y] = meshgrid(x,y);
+%x = x(:);
+%y = y(:);
+%F = delaunay(x,y);
+%V = [x y];
+%max_iterations = 5;
+%[m,~] = size(V);
+
 %u_prev = zeros(m*(max_iterations - 1), 1);
 %for i = 1:max_iterations
 %    u = laplace_eq_2D_quadprog_iterations(V, F, u_prev, i);
@@ -20,6 +21,16 @@ max_iterations = 5;
 %end
 %u1 = laplace_eq_2D_seg_quadprog(V, F);
 %face_plotting(V,F,u1)
+
+%Needs triangle packaage
+%Circle
+n = 1024; % boundary spacing: 2pi/n
+th = [0:2*pi()/n:2*pi()]';
+x = cos(th);
+y = sin(th);
+
+%% constuct mesh
+[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.001);
 u = laplace_disc(V,F);
 face_plotting(V,F,u)
 
@@ -142,7 +153,7 @@ function u = laplace_disc(V, F)
     equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + 2*m, 1);
     equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + 2*m, 3*k + 2*m);
     
-    y = quadprog(G_tilde,0.5*f,A,b,equalityMatrix,equalityConstraint);
+    y = quadprog(2*G_tilde,f,A,b,equalityMatrix,equalityConstraint);
     
     u = y(1:3*k);
     %Constructing a function for debugging
@@ -157,6 +168,6 @@ function u = laplace_disc(V, F)
             end
         end
     end
-norm(L*v,2) + norm(D*v,1)
-norm(L*u,2) + norm(D*u,1)
+2*norm(L*v,2) + norm(D*v,1)
+2*norm(L*u,2) + norm(D*u,1)
 end

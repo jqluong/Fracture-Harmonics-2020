@@ -5,6 +5,5 @@ function Md = face_build_discontinuity_mass(V,F)
     %three vertices, the second face should be the next three vertices,
     %etc.
     Fd = transpose(reshape(1:3*size(F,1),3,size(F,1)));
-    Md = massmatrix(Vd,Fd);
-    %There are some Nan's sometimes??
+    Md = massmatrix(Vd,Fd,'full');
 end
