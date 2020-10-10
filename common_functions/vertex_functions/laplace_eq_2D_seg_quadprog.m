@@ -22,11 +22,21 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     [k,~] = size(F);
    
     % generate gradient matrix to act on [ u t ]
+<<<<<<< Updated upstream
     cellArea = repelem(power(doublearea(V, F)/2, 0.5), 2);
     %M = spdiags(cellArea, 0, k*2, k*2);
     
     G = transpose(face_grad(V,F)) * speye(k*2,k*2) * face_grad(V,F);  % size(G) = 3k x 3k
     tf = issymmetric(G)
+=======
+    cellArea = repelem(power(doublearea(V, F)/2, 0.5), 3);
+    M = spdiags(cellArea, 0, 3*k, 3*k);
+    
+    G = - transpose(face_grad(V,F)) * M * (- face_grad(V,F));  % size(G) = 3k x 3k
+    tf = issymmetric(G);
+    d = eig(G);
+    isposdef = all(d > 0)
+>>>>>>> Stashed changes
     O_right = zeros(3*k,m); 
     O_bottom = zeros(m,3*k+m);
     G_tilde = [ G O_right; O_bottom ];
