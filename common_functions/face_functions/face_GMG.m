@@ -10,6 +10,6 @@
     
 function [GMG] = face_GMG(V,F)   
     G = face_grad(V,F);
-    M = 3*face_area_matrix(V,F);
+    M = 3*face_massmatrix(V,F);
     GMG = (G')*M*G;   
 end

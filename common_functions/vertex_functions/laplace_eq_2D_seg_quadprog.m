@@ -22,41 +22,31 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     [k,~] = size(F);
    
     % generate gradient matrix to act on [ u t ]
-<<<<<<< Updated upstream
     cellArea = repelem(power(doublearea(V, F)/2, 0.5), 2);
     %M = spdiags(cellArea, 0, k*2, k*2);
     
     G = transpose(face_grad(V,F)) * speye(k*2,k*2) * face_grad(V,F);  % size(G) = 3k x 3k
     tf = issymmetric(G)
-=======
-    cellArea = repelem(power(doublearea(V, F)/2, 0.5), 3);
-    M = spdiags(cellArea, 0, 3*k, 3*k);
-    
-    G = - transpose(face_grad(V,F)) * M * (- face_grad(V,F));  % size(G) = 3k x 3k
-    tf = issymmetric(G);
-    d = eig(G);
-    isposdef = all(d > 0)
->>>>>>> Stashed changes
-    O_right = zeros(3*k,m); 
-    O_bottom = zeros(m,3*k+m);
+    O_right = zeros(3*k,2*m); 
+    O_bottom = zeros(2*m,3*k+2*m);
     G_tilde = [ G O_right; O_bottom ];
     
     % generate discontinuity matrix
     V = [V zeros(length(V))];
-    D = face_discontinuity_matrix(V,F);
+    D = discontinuity(V,F);
     V = V(:,1:2);
     
     % generate vector f used in the constraint
     u_placeholder = zeros(3*k,1);
-    t_placeholder = ones(m,1);
+    t_placeholder = ones(2*m,1);
     f = [ u_placeholder; t_placeholder ];
     
     % generate |E|x|E| identity matrix used in the constraint block matrix
-    I = speye(m);
+    I = speye(2*m);
     
     % generate inequality constraint matrix and vector
-    A = [ -D -I; D -I];
-    b = zeros(2*m,1);
+    A = [ D -I; -D -I];
+    b = zeros(4*m,1);
     
     %boundary conditions
     B = unique(reshape(outline(F),[],1));
@@ -93,8 +83,8 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     BP2new = BP2new';
     [k,~] = size(F);
     
-    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + m, 1);
-    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + m, 3*k + m);
+    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + 2*m, 1);
+    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + 2*m, 3*k + 2*m);
     
     y = quadprog(G_tilde,f,A,b,equalityMatrix,equalityConstraint);
     
