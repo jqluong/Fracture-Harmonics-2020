@@ -4,15 +4,15 @@ mkdir('vertex_functions')
 addpath('vertex_functions')
 mkdir('face_functions')
 addpath('face_functions')
-%x = 0:.1:1;
-%y = x';
-%[x,y] = meshgrid(x,y);
-%x = x(:);
-%y = y(:);
-%F = delaunay(x,y);
-%V = [x y];
-%max_iterations = 5;
-%[m,~] = size(V);
+x = 0:.1:1;
+y = x';
+[x,y] = meshgrid(x,y);
+x = x(:);
+y = y(:);
+F = delaunay(x,y);
+V = [x y];
+max_iterations = 5;
+[m,~] = size(V);
 
 %u_prev = zeros(m*(max_iterations - 1), 1);
 %for i = 1:max_iterations
@@ -24,13 +24,13 @@ addpath('face_functions')
 
 %Needs triangle packaage
 %Circle
-n = 1024; % boundary spacing: 2pi/n
-th = [0:2*pi()/n:2*pi()]';
-x = cos(th);
-y = sin(th);
+%n = 1024; % boundary spacing: 2pi/n
+%th = [0:2*pi()/n:2*pi()]';
+%x = cos(th);
+%y = sin(th);
 
 %% constuct mesh
-[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.001);
+%[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.001);
 u = laplace_disc(V,F);
 face_plotting(V,F,u)
 
@@ -94,26 +94,28 @@ function u = laplace_disc(V, F)
     [k,~] = size(F);
    
     L = -face_build_discontinuity_laplacian(V,F); %|F| * 3 x |F| * 3
-    O_right = zeros(3*k,2*m); 
-    O_bottom = zeros(2*m,3*k+2*m);
+    O_right = zeros(3*k,m); 
+    O_bottom = zeros(m,3*k+m);
     G_tilde = [L O_right; O_bottom ];
     
     % generate discontinuity matrix
     V = [V zeros(length(V))];
     D = discontinuity(V,F); %D = 2|E|-by-3|F| sparse matrix , E = #edges
+    D_sum = face_edge_sum(F); %D_sum = 2|E| by |E| matrix
     V = V(:,1:2);
+
     
     % generate vector f used in the constraint
     u_placeholder = zeros(3*k,1);
-    t_placeholder = ones(2*m,1);
+    t_placeholder = ones(m,1);
     f = [ u_placeholder; t_placeholder ];
     
     % generate |E|x|E| identity matrix used in the constraint block matrix
-    I = speye(2*m);
+    I = speye(m);
     
     % generate inequality constraint matrix and vector
-    A = [D -I; -D -I];
-    b = zeros(4*m,1);
+    A = [D_sum*D -I; -D_sum*D -I];
+    b = zeros(2*m,1);
     
     %boundary conditions
     B = unique(reshape(outline(F),[],1));
@@ -150,8 +152,8 @@ function u = laplace_disc(V, F)
     BP2new = BP2new';
     [k,~] = size(F);
     
-    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + 2*m, 1);
-    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + 2*m, 3*k + 2*m);
+    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + m, 1);
+    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + m, 3*k + m);
     
     y = quadprog(2*G_tilde,f,A,b,equalityMatrix,equalityConstraint);
     
@@ -168,6 +170,7 @@ function u = laplace_disc(V, F)
             end
         end
     end
-2*norm(L*v,2) + norm(D*v,1)
-2*norm(L*u,2) + norm(D*u,1)
+%Comparing energy of quadprog solution v.s. "step function"
+norm(L*v,2)^2 + norm(D_sum*D*v,1)
+norm(L*u,2)^2 + norm(D_sum*D*u,1)
 end
