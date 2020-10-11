@@ -1,13 +1,14 @@
-function face_min_dirichlet_L1(V,F, num)
+function face_min_dirichlet_L1(V,F, num, filename)
 
 % solves min_{u} 1/2*u^T*L*u + 1^T*|Du|, where u is a face function, using
 % iterative method and quadprog
 %
-% currently outputs subplots of results
+% now it outputs results into GIF file
 %
 % V: continuous mesh vertex matrix, size #|V| by 2
 % F: continuous mesh face matrix, size #|F| by 3
 % num: number of eigenmodes desired
+% filename: string, specify file directory to write GIF file
 %
 % u: discontinuous mesh solution vector, size #3|F| by 1
 
@@ -31,19 +32,7 @@ D = discontinuity([V zeros(length(V),1)], F);
 Y = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num);
 
 % plot eigenmode functions
-subplot(1,3,1)
-face_plotting(V,F,Y(1:3*k,1));
-zlim([-0.5 0.5]);
-
-
-subplot(1,3,2)
-face_plotting(V,F,Y(1:3*k,2));
-zlim([-0.5 0.5]);
-
-
-subplot(1,3,3)
-face_plotting(V,F,Y(1:3*k,3));
-zlim([-0.5 0.5]);
+animated_eigenmodes(Vd,Fd,k, Y, filename)
 
 function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 
@@ -104,6 +93,38 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
 end % end of eigenmodes_iterations function
 
+
+function animated_eigenmodes(V,F,k, Y, filename)
+    
+    h = figure; 
+    [~,nImages] = size(Y);
+    axis tight manual;
+    delay = 1;
+    
+    for idx = 1:nImages
+        % capture plot sequence of images
+        face_plotting(V,F,Y(1:3*k,idx));
+        zlim([-0.5 0.5]);
+        caxis([-0.5 0.5]);
+        axis off;
+        colormap(cbrewer('RdYlBu',40));
+        colorbar();
+        view(345,45);
+        title(['Iterative min_{u} 1/2*u^T*L*u + 1^T*|Du|,  n = ' num2str( idx) ])
+        drawnow;
+        frame = getframe(h);
+        im = frame2im(frame); 
+        [A,map] = rgb2ind(im,256);
+        % save images into a GIF file
+        if idx == 1 
+            imwrite(A,map,filename,'gif', 'Loopcount',inf, 'DelayTime', delay); 
+        else 
+            imwrite(A,map,filename,'gif','WriteMode','append', 'DelayTime',delay); 
+        end 
+    end
+    
+
+end
 
 
 end
