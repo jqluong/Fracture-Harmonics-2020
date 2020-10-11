@@ -1,5 +1,17 @@
 function face_min_dirichlet_L1(V,F, num)
 
+% solves min_{u} 1/2*u^T*L*u + 1^T*|Du|, where u is a face function, using
+% iterative method and quadprog
+%
+% currently outputs subplots of results
+%
+% V: continuous mesh vertex matrix, size #|V| by 2
+% F: continuous mesh face matrix, size #|F| by 3
+% num: number of eigenmodes desired
+%
+% u: discontinuous mesh solution vector, size #3|F| by 1
+
+
 % transform mesh matrices to discontinuous mesh space
 % size |Fd|=|Fc|
 % size |Vd| is variable
@@ -23,18 +35,20 @@ subplot(1,3,1)
 face_plotting(V,F,Y(1:3*k,1));
 zlim([-0.5 0.5]);
 
+
 subplot(1,3,2)
 face_plotting(V,F,Y(1:3*k,2));
 zlim([-0.5 0.5]);
+
 
 subplot(1,3,3)
 face_plotting(V,F,Y(1:3*k,3));
 zlim([-0.5 0.5]);
 
-
 function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 
     CONVERG = 0.001;          % convegence criteria used to stop iterations
+    beta = 1e-7;
 
     L = -cotmatrix(Vd,Fd);    % disc. laplacian matrix size #3|F| by #3|F|
     M = massmatrix(Vd,Fd);    % mass matrix, size #3|F| by #3|F|
@@ -47,8 +61,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
     % construct block matrix using discontinuity matrix to act on y=[u;t]
     I = speye(2*m);
-    D_tilde = [-D -I; D -I];
-    size(D_tilde)
+    D_tilde = beta * [-D -I; D -I];
 
     % construct vector f used for L1 norm
     % recall second min term is transpose(f)*y
