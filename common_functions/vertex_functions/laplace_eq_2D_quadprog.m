@@ -14,10 +14,8 @@ function u = laplace_eq_2D_quadprog(V, F, B)
     % find number of vertices
     [n,~] = size(V);
     
-    
     % find number of boundary vertices
     [k,~] = size(B);
-    
     
     % generate cotagent matrx
     L = - cotmatrix(V,F);

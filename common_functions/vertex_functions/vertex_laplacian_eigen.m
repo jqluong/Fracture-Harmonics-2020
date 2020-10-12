@@ -1,36 +1,20 @@
+function vertex_laplacian_eigen(V,F,mu,num,filename)
 
-% for test: generate circle
-s = 100;
-theta = [0:2*pi()/s:2*pi()]';
-x = cos(theta);
-y = sin(theta);
+% computes the eigenmodes of the Laplacian matrix for vertex defined
+% funtions and saves output into a GIF file
+%
+% V: vertices matrix
+% F: faces matrix
+% mu: see 'Compressed vibration modes of elastic bodies' paper
+% num: number of eigenmodes to be computed
+% filename: string, specify file directory to save results as a GIF file
 
-[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.001);
-
-% for test: create square mesh
-%x = [0:.1:1 1.5];
-%y = x';
-%[x,y] = meshgrid(x,y);
-%x = x(:);
-%y = y(:);
-
-%F = delaunay(x,y);
-%V = [x y];
-
-% for test: create annulus
-%[V,F,bo_in,bo_out] = annulus(100,2);
-
-
-% set values for mu (see paper) and num (number of eigenmodes)
-mu = 0;
-num = 25;
 U = zeros(length(V),num);      % matrix of eigenmodes, each column is an eigenmode.
 
 % call function to find eigenmodes
 U = eigenmodes_iterations(V,F,U, mu,num);
 
 % plot eigenmode functions
-filename = '/Users/lmattos/Documents/GitHub/Fracture-Harmonics-2020/Leticia/2D/vertex_func_eigenmodes.gif'; % Specify the output file name
 plot_eigenmodes(V,F,U,filename);
 
 function  R = eigenmodes_iterations(V,F,U, mu,num)
@@ -95,5 +79,7 @@ function plot_eigenmodes(V, F, U, filename)
         end 
     end
     
+
+end
 
 end

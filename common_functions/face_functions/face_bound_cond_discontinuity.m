@@ -1,19 +1,9 @@
-function u = laplace_eq_2D_seg_quadprog(V, F)
-    % solve laplace's equation on a 2D triangle mesh surface using quadprog
-    % for 'segmented' functions, i.e. functions with face edges that may
-    % not match
-    %
-    % V is matrix of vertex position
-    %
-    % F is matrix of face indices
-    %
-    % B is boundary conditions. B should be a k by 2 matrix, where the
-    % first column is vertex position in V, and
-    % second column is the value of u at the corresponding (x, y)
-    %
-    % output is the solution u of \Delta u = 0 given boundary condition B
-    %
-    % the format of solution u is u = [ u(F1_v1) u(F1_v2) u(F1_v3) u(F2_v1) u(F2_v2) u(F2_v3) ... ]
+function u = face_bound_cond_discontinuity(V, F)
+
+    % Testing L_discontinous on min ||Lu||^2_2 + ||Du||_1, the results are technically correct
+    % that the energy of given solution u is less than all other functions, but weirdness around |Du||_1 term
+    % Note: this function was initially written under 'Fracture-Harmonics-2020/common-functions/vertex_functions/laplace_eq_2D_seg_quadprog.m'
+    % its version history was not duplicated under the new name, please refer to laplace_eq_2D_seg_quadprog.m history
     
     E = edges(F); % edges matrix
     
@@ -27,26 +17,26 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     
     G = transpose(face_grad(V,F)) * speye(k*2,k*2) * face_grad(V,F);  % size(G) = 3k x 3k
     tf = issymmetric(G)
-    O_right = zeros(3*k,m); 
-    O_bottom = zeros(m,3*k+m);
+    O_right = zeros(3*k,2*m); 
+    O_bottom = zeros(2*m,3*k+2*m);
     G_tilde = [ G O_right; O_bottom ];
     
     % generate discontinuity matrix
     V = [V zeros(length(V))];
-    D = face_discontinuity_matrix(V,F);
+    D = discontinuity(V,F);
     V = V(:,1:2);
     
     % generate vector f used in the constraint
     u_placeholder = zeros(3*k,1);
-    t_placeholder = ones(m,1);
+    t_placeholder = ones(2*m,1);
     f = [ u_placeholder; t_placeholder ];
     
     % generate |E|x|E| identity matrix used in the constraint block matrix
-    I = speye(m);
+    I = speye(2*m);
     
     % generate inequality constraint matrix and vector
-    A = [ -D -I; D -I];
-    b = zeros(2*m,1);
+    A = [ D -I; -D -I];
+    b = zeros(4*m,1);
     
     %boundary conditions
     B = unique(reshape(outline(F),[],1));
@@ -83,8 +73,8 @@ function u = laplace_eq_2D_seg_quadprog(V, F)
     BP2new = BP2new';
     [k,~] = size(F);
     
-    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + m, 1);
-    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + m, 3*k + m);
+    equalityConstraint = sparse(BP2new,ones(length(BP2new),1),ones(length(BP2new),1), 3*k + 2*m, 1);
+    equalityMatrix = sparse([BP1new; BP2new], [BP1new; BP2new], ones(length(BP1new) + length(BP2new), 1), 3*k + 2*m, 3*k + 2*m);
     
     y = quadprog(G_tilde,f,A,b,equalityMatrix,equalityConstraint);
     
