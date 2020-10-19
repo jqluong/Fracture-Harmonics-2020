@@ -46,8 +46,8 @@ sol2 = solve(problem2);
 hold on
 plot(0:1/(stepsize-1):1, signal)
 plot(0:1/(stepsize-1):1, signalWithError)
-plot(0:1/(stepsize-1):1, sol1.recoveredSignal)
-plot(0:1/(stepsize-1):1, sol2.recoveredSignal)
+%plot(0:1/(stepsize-1):1, sol1.recoveredSignal)
+%plot(0:1/(stepsize-1):1, sol2.recoveredSignal)
 legend('Original Signal', 'Signal With Error', 'Recovered Signal with l^1 term', 'Recovered Signal with l^2 term')
 title('Denoising Algorithm with pointwise Functions')
 hold off

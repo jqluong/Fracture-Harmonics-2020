@@ -44,8 +44,8 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
     % construct block matrix using Laplacian to act on y=[u;t]
     % recall first min term is 1/2 transpose(y)*L_tilde*y
-    O_r = zeros(3*k,2*m);
-    O_b = zeros(2*m,3*k+2*m);
+    O_r = sparse(3*k,2*m);
+    O_b = sparse(2*m,3*k+2*m);
     L_tilde = [L O_r; O_b];
     
     % construct block matrix using discontinuity matrix to act on y=[u;t]
@@ -81,7 +81,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
             % matrix used for the unit norm condition
             Eq_1 = transpose(c)*M;  
             % append matrices for equality constraint
-            Aeq = [ Eq_0 zeros(length(Eq_0(:,1)),2*m); Eq_1 zeros(length(Eq_1(:,1)),2*m)];
+            Aeq = [ Eq_0 sparse(length(Eq_0(:,1)),2*m); Eq_1 sparse(length(Eq_1(:,1)),2*m)];
             % find solution using quadprog
             u = quadprog(L_tilde, f,D_tilde ,zeros(2*2*m,1),Aeq,beq);     
             Y(:,i) = c;     % store solution into matrix of eigenmodes
