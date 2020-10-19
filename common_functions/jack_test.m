@@ -4,6 +4,18 @@ mkdir('vertex_functions')
 addpath('vertex_functions')
 mkdir('face_functions')
 addpath('face_functions')
+mkdir('mesh_functions')
+addpath('mesh_functions')
+%Testing circle meshes
+%[V,F] = mesh_circle(10);
+%M = face_build_discontinuity_mass(V,F);
+%L = face_build_discontinuity_laplacian(V,F);
+%[m,n] = size(F);
+%f = ones(3 * m, 1);
+%M * f
+%L * f
+
+
 x = 0:.1:1;
 y = x';
 [x,y] = meshgrid(x,y);
@@ -11,9 +23,10 @@ x = x(:);
 y = y(:);
 F = delaunay(x,y);
 V = [x y];
-max_iterations = 5;
+max_iterations = 2;
 [m,~] = size(V);
 
+%get eigenfunctions
 %u_prev = zeros(m*(max_iterations - 1), 1);
 %for i = 1:max_iterations
 %    u = laplace_eq_2D_quadprog_iterations(V, F, u_prev, i);
@@ -21,19 +34,101 @@ max_iterations = 5;
 %end
 %u1 = laplace_eq_2D_seg_quadprog(V, F);
 %face_plotting(V,F,u1)
+U = iterative(V,F,max_iterations);
 
-%Needs triangle packaage
-%Circle
-%n = 1024; % boundary spacing: 2pi/n
-%th = [0:2*pi()/n:2*pi()]';
-%x = cos(th);
-%y = sin(th);
+function Y = iterative(V,F, num)
 
-%% constuct mesh
-%[V, F] = triangle([x,y], 'Quality', 30, 'MaxArea', 0.001);
-u = laplace_disc(V,F);
-face_plotting(V,F,u)
+% solves min_{u} 1/2*u^T*L*u + 1^T*|Du|, where u is a face function, using
+% iterative method and quadprog
+%
+% now it outputs results into GIF file
+%
+% V: continuous mesh vertex matrix, size #|V| by 2
+% F: continuous mesh face matrix, size #|F| by 3
+% num: number of eigenmodes desired
+% filename: string, specify file directory to write GIF file
+%
+% u: discontinuous mesh solution vector, size #3|F| by 1
 
+
+% transform mesh matrices to discontinuous mesh space
+% size |Fd|=|Fc|
+% size |Vd| is variable
+[Vd,Fd] = discontinuous_reshape(V,F);
+
+% declare some dimensions used
+E = edges(F);        % edges matrix
+[m,~] = size(E);     % needed for dimension of Du
+[k,~] = size(F);     % needed for length u in R^3*k
+
+Y = zeros(3*k,num); % matrix of eigenmodes 3*|F| by num, each column is an eigenmode.
+
+% generate discontinuity matrix, size 2*|E| by 3*|F|
+D = discontinuity([V zeros(length(V),1)], F);
+
+% call function to find eigenmodes
+Y = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num);
+
+
+function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
+
+    CONVERG = 0.001;          % convegence criteria used to stop iterations
+    beta = 1;
+
+    L = -cotmatrix(Vd,Fd);    % disc. laplacian matrix size #3|F| by #3|F|
+    M = massmatrix(Vd,Fd);    % mass matrix, size #3|F| by #3|F|
+    
+    % construct block matrix using Laplacian to act on y=[u;t]
+    % recall first min term is 1/2 transpose(y)*L_tilde*y
+    O_r = sparse(3*k,2*m);
+    O_b = sparse(2*m,3*k+2*m);
+    L_tilde = [L O_r; O_b];
+    
+    % construct block matrix using discontinuity matrix to act on y=[u;t]
+    I = speye(2*m);
+    D_tilde = beta * [-D -I; D -I];
+
+    % construct vector f used for L1 norm
+    % recall second min term is transpose(f)*y
+    u_placeholder = zeros(3*k,1);
+    t_placeholder = ones(2*m,1);
+    f = [ u_placeholder; t_placeholder ];
+
+    % find total of num eigenmodes loop
+    for i = 1:num
+        perform_iter(i);
+        % display progress
+        fprintf(['at ' num2str(i) '-th iteration'])
+    end  
+    
+    R = Y; % set resulting matrix to U
+
+    
+    function perform_iter(i)
+        c = rand(3*k,1);        % initialize the first vector to random unit vector
+        c = c/(sqrt(c'*M*c));   % normalize the initial vector 
+    
+        % create equality constraint
+        Eq_0 = transpose(Y(:,1:(i-1)))*M;     % matrix used for the orthogonal condition
+        beq = [ zeros((i-1),1); 1];           % inequality constraint vector
+    
+        % find i-th eigenmode loop
+        while sqrt(transpose(c-Y(:,i))*M*(c-Y(:,i)))  > CONVERG
+            % matrix used for the unit norm condition
+            Eq_1 = transpose(c)*M;  
+            % append matrices for equality constraint
+            Aeq = [ Eq_0 sparse(length(Eq_0(:,1)),2*m); Eq_1 sparse(length(Eq_1(:,1)),2*m)];
+            % find solution using quadprog
+            u = quadprog(L_tilde, f,D_tilde ,zeros(2*2*m,1),Aeq,beq);     
+            Y(:,i) = c;     % store solution into matrix of eigenmodes
+            c = u(1:3*k)/(sqrt(u(1:3*k)'*M*u(1:3*k)));  % normalize solution
+            
+        end % end of find i-th eigenmode loop
+    
+    end % end of perform_iter function
+    
+end % end of eigenmodes_iterations function
+end
 
 function u = laplace_eq_2D_quadprog_iterations(V, F, u_prev, iterations)
     % solve laplace's equation on a 2D triangle mesh surface using quadprog
