@@ -18,7 +18,7 @@ addpath('mesh_functions')
 %L * f
 
 
-x = 0:.1:1;
+x = 0:1:10;
 y = x';
 [x,y] = meshgrid(x,y);
 x = x(:);
@@ -30,10 +30,10 @@ max_iterations = 5;
 U = iterative(V,F,max_iterations);
 %animated_eigenmodes(V,F,U,'eigenmodes.gif')
 %Debugging Stuff to check if second eigenfunction optimal
-%step_test = create_step(V,F);
-%[e1_l,e1_d] = compute_energy(V,F,U(:,2))
-%[e2_l,e2_d] = compute_energy(V,F,step_test)
-%face_plotting(V,F,U(:,2))
+step_test = create_step(V,F);
+[e1_l,e1_d] = compute_energy(V,F,U(:,2))
+[e2_l,e2_d] = compute_energy(V,F,step_test)
+face_plotting(V,F,U(:,2))
 %M = face_build_discontinuity_mass(V,F);
 %orth1 = transpose(U(:,1)) * M * U(:,2)
 %orth2 = transpose(U(:,1)) * M * step_test
@@ -67,7 +67,7 @@ D = discontinuity([V zeros(length(V),1)], F);
 D_sum = face_edge_sum(F);
 D_new = D_sum * D;
 V = V(:,1:2);
-%[Vd,Fd] = discontinuous_reshape(V,F);
+[Vd,Fd] = discontinuous_reshape(V,F);
 % declare some dimensions used
 E = edges(F);        % edges matrix
 [m,~] = size(E);     % needed for dimension of Du
@@ -76,44 +76,48 @@ E = edges(F);        % edges matrix
 Y = zeros(3*k,num); % matrix of eigenmodes 3*|F| by num, each column is an eigenmode.
 
 % call function to find eigenmodes
-Y = eigenmodes_iterations(V,F,D_new,m,k,Y,num);
+Y = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num);
 
 
 function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 
     CONVERG = 0.001;          % convegence criteria used to stop iterations
-    beta = 1;
-
-    L = -face_build_discontinuity_laplacian(Vd,Fd);    % disc. laplacian matrix size #3|F| by #3|F|
-    M = face_build_discontinuity_mass(Vd,Fd);    % mass matrix, size #3|F| by #3|F|
+    beta = 10^-2;
+    
+    L = -cotmatrix(Vd,Fd);
+    M = massmatrix(Vd,Fd);
+    
+    %L = -face_build_discontinuity_laplacian(Vd,Fd);    % disc. laplacian matrix size #3|F| by #3|F|
+    %M = face_build_discontinuity_mass(Vd,Fd);    % mass matrix, size #3|F| by #3|F|
     
     % construct block matrix using Laplacian to act on y=[u;t]
     % recall first min term is 1/2 transpose(y)*L_tilde*y
-    O_r = sparse(3*k,m);
-    O_b = sparse(m,3*k+m);
+    O_r = sparse(3*k,2*m);
+    O_b = sparse(2*m,3*k+2*m);
     L_tilde = [L O_r; O_b];
     
     % construct block matrix using discontinuity matrix to act on y=[u;t]
-    I = speye(m);
-    D_tilde = beta * [-D -I; D -I];
+    I = speye(2*m);
+    D_tilde = [-D -I; D -I];
 
     % construct vector f used for L1 norm
     % recall second min term is transpose(f)*y
     u_placeholder = zeros(3*k,1);
-    t_placeholder = ones(m,1);
+    t_placeholder = ones(2*m,1);
     f = [ u_placeholder; t_placeholder ];
 
     % find total of num eigenmodes loop
     for i = 1:num
         perform_iter(i);
         % display progress
-        fprintf(['at ' num2str(i) '-th iteration'])
+        fprintf(['At ' num2str(i) '-th iteration \n'])
     end  
     
     R = Y; % set resulting matrix to U
 
     
     function perform_iter(i)
+        options =  optimset('Display','off');
         c = rand(3*k,1);        % initialize the first vector to random unit vector
         c = c/(sqrt(c'*M*c));   % normalize the initial vector 
     
@@ -126,9 +130,9 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
             % matrix used for the unit norm condition
             Eq_1 = transpose(c)*M;  
             % append matrices for equality constraint
-            Aeq = [ Eq_0 sparse(length(Eq_0(:,1)),m); Eq_1 sparse(length(Eq_1(:,1)),m)];
+            Aeq = [ Eq_0 sparse(length(Eq_0(:,1)),2*m); Eq_1 sparse(length(Eq_1(:,1)),2*m)];
             % find solution using quadprog
-            u = quadprog(2*L_tilde, f,D_tilde ,zeros(2*m,1),Aeq,beq);     
+            u = quadprog(2*L_tilde, beta*f,D_tilde ,zeros(4*m,1),Aeq,beq,[],[],[],options);     
             Y(:,i) = c;     % store solution into matrix of eigenmodes
             c = u(1:3*k)/(sqrt(u(1:3*k)'*M*u(1:3*k)));  % normalize solution
             
@@ -141,13 +145,13 @@ end
 
 function step = create_step(V,F)
     [m,~] = size(F);
-    step = -1*ones(3 * m,1);
+    step = -1/10*ones(3 * m,1);
     for i = 1:m
         vertices = V(F(i,:));
-        if vertices(1) >= 1/2 && vertices(2) >= 1/2 && vertices(3) >= 1/2
-            step(3*(i-1) + 1) = 1;
-            step(3*(i-1) + 2) = 1;
-            step(3*(i-1) + 3) = 1;
+        if vertices(1) >= 5 && vertices(2) >= 5 && vertices(3) >= 5
+            step(3*(i-1) + 1) = 1/10;
+            step(3*(i-1) + 2) = 1/10;
+            step(3*(i-1) + 3) = 1/10;
         end
     end
 end
@@ -188,7 +192,7 @@ function animated_eigenmodes(V,F, Y, filename)
         if idx == 1 
             imwrite(A,map,filename,'gif', 'Loopcount',inf, 'DelayTime', delay); 
         else 
-            imwrite(A,map,filename,'gif','WriteMode','append', 'DelayTime',delay); 
+            imwrite(A,map,filename,'gif','WriteMde','append', 'DelayTime',delay); 
         end 
     end
     
