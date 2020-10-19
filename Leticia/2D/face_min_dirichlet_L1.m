@@ -23,10 +23,10 @@ E = edges(F);        % edges matrix
 [m,~] = size(E);     % needed for dimension of Du
 [k,~] = size(F);     % needed for length u in R^3*k
 
-Y = zeros(3*k,num); % matrix of eigenmodes 3*|F| by num, each column is an eigenmode.
+Y = sparse(3*k,num); % matrix of eigenmodes 3*|F| by num, each column is an eigenmode.
 
 % generate discontinuity matrix, size 2*|E| by 3*|F|
-D = discontinuity([V zeros(length(V),1)], F);
+D = discontinuity([V sparse(length(V),1)], F);
 
 % call function to find eigenmodes
 Y = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num);
@@ -44,8 +44,8 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
     % construct block matrix using Laplacian to act on y=[u;t]
     % recall first min term is 1/2 transpose(y)*L_tilde*y
-    O_r = zeros(3*k,2*m);
-    O_b = zeros(2*m,3*k+2*m);
+    O_r = sparse(3*k,2*m);
+    O_b = sparse(2*m,3*k+2*m);
     L_tilde = [L O_r; O_b];
     
     % construct block matrix using discontinuity matrix to act on y=[u;t]
@@ -54,7 +54,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 
     % construct vector f used for L1 norm
     % recall second min term is transpose(f)*y
-    u_placeholder = zeros(3*k,1);
+    u_placeholder = sparse(3*k,1);
     t_placeholder = ones(2*m,1);
     f = [ u_placeholder; t_placeholder ];
 
@@ -74,16 +74,16 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
         % create equality constraint
         Eq_0 = transpose(Y(:,1:(i-1)))*M;     % matrix used for the orthogonal condition
-        beq = [ zeros((i-1),1); 1];           % inequality constraint vector
+        beq = [ sparse((i-1),1); 1];           % inequality constraint vector
     
         % find i-th eigenmode loop
         while sqrt(transpose(c-Y(:,i))*M*(c-Y(:,i)))  > CONVERG
             % matrix used for the unit norm condition
             Eq_1 = transpose(c)*M;  
             % append matrices for equality constraint
-            Aeq = [ Eq_0 zeros(length(Eq_0(:,1)),2*m); Eq_1 zeros(length(Eq_1(:,1)),2*m)];
+            Aeq = [ Eq_0 sparse(length(Eq_0(:,1)),2*m); Eq_1 sparse(length(Eq_1(:,1)),2*m)];
             % find solution using quadprog
-            u = quadprog(L_tilde, f,D_tilde ,zeros(2*2*m,1),Aeq,beq);     
+            u = quadprog(L_tilde, f,D_tilde ,sparse(2*2*m,1),Aeq,beq);     
             Y(:,i) = c;     % store solution into matrix of eigenmodes
             c = u(1:3*k)/(sqrt(u(1:3*k)'*M*u(1:3*k)));  % normalize solution
             
@@ -110,7 +110,7 @@ function animated_eigenmodes(V,F,k, Y, filename)
         colormap(cbrewer('RdYlBu',40));
         colorbar();
         view(345,45);
-        title(['Iterative min_{u} 1/2*u^T*L*u + 1^T*|Du|,  n = ' num2str( idx) ])
+        title(['Iterative min_{u} 1/2*u^T*L*u + beta*1^T*|Du|,  n = ' num2str( idx) ])
         drawnow;
         frame = getframe(h);
         im = frame2im(frame); 
