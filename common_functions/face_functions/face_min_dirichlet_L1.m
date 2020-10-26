@@ -1,3 +1,4 @@
+
 function face_min_dirichlet_L1(V,F, num, filename)
 
 % solves min_{u} 1/2*u^T*L*u + 1^T*|Du|, where u is a face function, using
@@ -13,6 +14,11 @@ function face_min_dirichlet_L1(V,F, num, filename)
 % u: discontinuous mesh solution vector, size #3|F| by 1
 
 
+% generate discontinuity matrix, size 2*|E| by 3*|F|
+D = discontinuity([V sparse(length(V),1)], F);
+
+V = V(:,1:2);
+
 % transform mesh matrices to discontinuous mesh space
 % size |Fd|=|Fc|
 % size |Vd| is variable
@@ -23,21 +29,21 @@ E = edges(F);        % edges matrix
 [m,~] = size(E);     % needed for dimension of Du
 [k,~] = size(F);     % needed for length u in R^3*k
 
-Y = zeros(3*k,num); % matrix of eigenmodes 3*|F| by num, each column is an eigenmode.
-
-% generate discontinuity matrix, size 2*|E| by 3*|F|
-D = discontinuity([V zeros(length(V),1)], F);
+Y = sparse(3*k,num); % matrix of eigenmodes 3*|F| by num, each column is an eigenmode.
 
 % call function to find eigenmodes
 Y = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num);
 
 % plot eigenmode functions
-animated_eigenmodes(Vd,Fd,k, Y, filename)
+animated_eigenmodes(V,F, full(Y), filename)
 
 function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
+    
+    options =  optimset('Display','off');
 
     CONVERG = 0.001;          % convegence criteria used to stop iterations
-    beta = 1e-7;
+    beta = 1e-3;
+    alpha = 2;
 
     L = -cotmatrix(Vd,Fd);    % disc. laplacian matrix size #3|F| by #3|F|
     M = massmatrix(Vd,Fd);    % mass matrix, size #3|F| by #3|F|
@@ -50,11 +56,11 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
     % construct block matrix using discontinuity matrix to act on y=[u;t]
     I = speye(2*m);
-    D_tilde = beta * [-D -I; D -I];
+    D_tilde = [-D -I; D -I];
 
     % construct vector f used for L1 norm
     % recall second min term is transpose(f)*y
-    u_placeholder = zeros(3*k,1);
+    u_placeholder = sparse(3*k,1);
     t_placeholder = ones(2*m,1);
     f = [ u_placeholder; t_placeholder ];
 
@@ -62,7 +68,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     for i = 1:num
         perform_iter(i);
         % display progress
-        fprintf(['at ' num2str(i) '-th iteration'])
+        fprintf(['at ' num2str(i) '-th iteration \n'])
     end  
     
     R = Y; % set resulting matrix to U
@@ -74,7 +80,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
         % create equality constraint
         Eq_0 = transpose(Y(:,1:(i-1)))*M;     % matrix used for the orthogonal condition
-        beq = [ zeros((i-1),1); 1];           % inequality constraint vector
+        beq = [ sparse((i-1),1); 1];           % inequality constraint vector
     
         % find i-th eigenmode loop
         while sqrt(transpose(c-Y(:,i))*M*(c-Y(:,i)))  > CONVERG
@@ -83,7 +89,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
             % append matrices for equality constraint
             Aeq = [ Eq_0 sparse(length(Eq_0(:,1)),2*m); Eq_1 sparse(length(Eq_1(:,1)),2*m)];
             % find solution using quadprog
-            u = quadprog(L_tilde, f,D_tilde ,zeros(2*2*m,1),Aeq,beq);     
+            u = quadprog(alpha*L_tilde, beta*f,D_tilde ,sparse(2*2*m,1),Aeq,beq,[],[],[],options);     
             Y(:,i) = c;     % store solution into matrix of eigenmodes
             c = u(1:3*k)/(sqrt(u(1:3*k)'*M*u(1:3*k)));  % normalize solution
             
@@ -94,7 +100,8 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 end % end of eigenmodes_iterations function
 
 
-function animated_eigenmodes(V,F,k, Y, filename)
+
+function animated_eigenmodes(V,F, Y, filename)
     
     h = figure; 
     [~,nImages] = size(Y);
@@ -103,14 +110,14 @@ function animated_eigenmodes(V,F,k, Y, filename)
     
     for idx = 1:nImages
         % capture plot sequence of images
-        face_plotting(V,F,Y(1:3*k,idx));
+        face_plotting(V,F,Y(:,idx));
         zlim([-0.5 0.5]);
         caxis([-0.5 0.5]);
         axis off;
         colormap(cbrewer('RdYlBu',40));
         colorbar();
         view(345,45);
-        title(['Iterative min_{u} 1/2*u^T*L*u + 1^T*|Du|,  n = ' num2str( idx) ])
+        title(['Iterative min_{u} alpha*1/2*u^T*L*u + beta*1^T*|Du|,  n = ' num2str( idx) ])
         drawnow;
         frame = getframe(h);
         im = frame2im(frame); 
