@@ -48,7 +48,7 @@ animated_eigenmodes(V,F, full(Y), filename);
 function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 
     CONVERG = 0.001;          % convegence criteria used to stop iterations
-    beta = 1e-2;
+    beta = 1e-3;
 
     L = -cotmatrix(Vd,Fd);    % disc. laplacian matrix size #3|F| by #3|F|
     M = massmatrix(Vd,Fd);    % mass matrix, size #3|F| by #3|F|

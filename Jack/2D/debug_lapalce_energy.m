@@ -17,6 +17,7 @@ addpath('mesh_functions')
 %M * f
 %L * f
 
+rng('default');
 
 x = 0:1:10;
 y = x';
@@ -28,12 +29,12 @@ V = [x y];
 max_iterations = 5;
 [m,~] = size(V);
 U = iterative(V,F,max_iterations);
-%animated_eigenmodes(V,F,U,'eigenmodes.gif')
+animated_eigenmodes(V,F,U,'eigenmodes.gif')
 %Debugging Stuff to check if second eigenfunction optimal
 step_test = create_step(V,F);
 [e1_l,e1_d] = compute_energy(V,F,U(:,2))
 [e2_l,e2_d] = compute_energy(V,F,step_test)
-face_plotting(V,F,U(:,2))
+%face_plotting(V,F,U(:,2))
 %M = face_build_discontinuity_mass(V,F);
 %orth1 = transpose(U(:,1)) * M * U(:,2)
 %orth2 = transpose(U(:,1)) * M * step_test
@@ -192,7 +193,7 @@ function animated_eigenmodes(V,F, Y, filename)
         if idx == 1 
             imwrite(A,map,filename,'gif', 'Loopcount',inf, 'DelayTime', delay); 
         else 
-            imwrite(A,map,filename,'gif','WriteMde','append', 'DelayTime',delay); 
+            imwrite(A,map,filename,'gif','WriteMode','append', 'DelayTime',delay); 
         end 
     end
     

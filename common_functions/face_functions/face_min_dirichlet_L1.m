@@ -1,6 +1,8 @@
 
 function face_min_dirichlet_L1(V,F, num, filename)
 
+rng('default');
+
 % solves min_{u} 1/2*u^T*L*u + 1^T*|Du|, where u is a face function, using
 % iterative method and quadprog
 %
@@ -39,10 +41,9 @@ animated_eigenmodes(V,F, full(Y), filename)
 
 function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
     
-    options =  optimset('Display','off');
 
     CONVERG = 0.001;          % convegence criteria used to stop iterations
-    beta = 1e-3;
+    beta = 1e-2;
     alpha = 2;
 
     L = -cotmatrix(Vd,Fd);    % disc. laplacian matrix size #3|F| by #3|F|
@@ -75,6 +76,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 
     
     function perform_iter(i)
+        options =  optimset('Display','off');
         c = rand(3*k,1);        % initialize the first vector to random unit vector
         c = c/(sqrt(c'*M*c));   % normalize the initial vector 
     
@@ -89,7 +91,7 @@ function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
             % append matrices for equality constraint
             Aeq = [ Eq_0 sparse(length(Eq_0(:,1)),2*m); Eq_1 sparse(length(Eq_1(:,1)),2*m)];
             % find solution using quadprog
-            u = quadprog(alpha*L_tilde, beta*f,D_tilde ,sparse(2*2*m,1),Aeq,beq,[],[],[],options);     
+            u = quadprog(alpha*L_tilde, beta*f,D_tilde ,sparse(4*m,1),Aeq,beq,[],[],[],options);     
             Y(:,i) = c;     % store solution into matrix of eigenmodes
             c = u(1:3*k)/(sqrt(u(1:3*k)'*M*u(1:3*k)));  % normalize solution
             
