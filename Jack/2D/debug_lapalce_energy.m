@@ -18,17 +18,18 @@ addpath('mesh_functions')
 %L * f
 
 
-x = 0:1:10;
-y = x';
+x = 0:.1:1;
+y = 0:.1:2;
+y = y';
 [x,y] = meshgrid(x,y);
 x = x(:);
 y = y(:);
 F = delaunay(x,y);
 V = [x y];
-max_iterations = 5;
+max_iterations = 10;
 [m,~] = size(V);
 U = iterative(V,F,max_iterations);
-%animated_eigenmodes(V,F,U,'eigenmodes.gif')
+animated_eigenmodes(V,F,U,'eigenmodesRect.gif')
 %Debugging Stuff to check if second eigenfunction optimal
 step_test = create_step(V,F);
 [e1_l,e1_d] = compute_energy(V,F,U(:,2))
@@ -82,7 +83,7 @@ Y = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num);
 function  R = eigenmodes_iterations(Vd,Fd,D,m,k,Y,num)
 
     CONVERG = 0.001;          % convegence criteria used to stop iterations
-    beta = 10^-2;
+    beta = 10^-1;
     
     L = -cotmatrix(Vd,Fd);
     M = massmatrix(Vd,Fd);
@@ -192,7 +193,7 @@ function animated_eigenmodes(V,F, Y, filename)
         if idx == 1 
             imwrite(A,map,filename,'gif', 'Loopcount',inf, 'DelayTime', delay); 
         else 
-            imwrite(A,map,filename,'gif','WriteMde','append', 'DelayTime',delay); 
+            imwrite(A,map,filename,'gif','WriteMode','append', 'DelayTime',delay); 
         end 
     end
     
