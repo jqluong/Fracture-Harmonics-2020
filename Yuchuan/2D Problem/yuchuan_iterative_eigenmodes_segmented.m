@@ -3,11 +3,14 @@
 
 
 %% Create mesh
-[x, y] = meshgrid(1:10, 1:10);
-points = [x(:), y(:)];
-V = [points zeros(size(points,1),1)];
-F = delaunay(points);
+% [x, y] = meshgrid(1:10, 1:10);
+% points = [x(:), y(:)];
+% V = [points zeros(size(points,1),1)];
+% F = delaunay(points);
 
+P = get_pencil_curve();
+[V, F] = triangle(P, 'Quality', 30, 'MaxArea', 0.001);
+V = [V zeros(size(V,1),1)];
 
 %% Initialization 
 GMG = face_GMG(V,F);
@@ -18,7 +21,7 @@ area_matrix = face_area_matrix(V,F);
 
 
 %% argmin u^t * GMG * u + mu*|D*u| 
-n_iter = 10; 
+n_iter = 12; 
 U = zeros(3*size(F,1),3*size(F,1)); %i_th col stores the i_th eigenmode
 %U(1:6 , 1) = 0.2; %remove if not needed   %forces first eigenmode to be discontinuous
 %c = sparse(1,1,1,3*size(F,1),1); %OR
