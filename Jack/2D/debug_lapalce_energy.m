@@ -29,7 +29,7 @@ V = [x y];
 max_iterations = 10;
 [m,~] = size(V);
 U = iterative(V,F,max_iterations);
-animated_eigenmodes(V,F,U,'eigenmodesRect.gif')
+animated_eigenmodes(V,F,U,'eigenmodesConstraint.gif')
 %Debugging Stuff to check if second eigenfunction optimal
 step_test = create_step(V,F);
 [e1_l,e1_d] = compute_energy(V,F,U(:,2))
