@@ -25,6 +25,7 @@ F = delaunay(x,y);
 V = [x y];
 max_iterations = 2;
 [m,~] = size(V);
+u = laplace_disc(V,F)
 
 %get eigenfunctions
 %u_prev = zeros(m*(max_iterations - 1), 1);
@@ -34,7 +35,7 @@ max_iterations = 2;
 %end
 %u1 = laplace_eq_2D_seg_quadprog(V, F);
 %face_plotting(V,F,u1)
-U = iterative(V,F,max_iterations);
+%U = iterative(V,F,max_iterations);
 
 function Y = iterative(V,F, num)
 
