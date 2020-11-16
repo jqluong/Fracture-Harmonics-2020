@@ -24,8 +24,8 @@ E2(size(P,1)) = 1;
 E = [E1 E2];
 
 %Triangulate mesh
-[V, F] = triangle(P,E,H, 'Quality', Q, 'MaxArea', M);
-V = [V zeros(size(V,1),1)];
+[V, F] = triangle(P,E,H, 'Quality', Q, 'MaxArea', M, 'Flags','-q1.2-a0.01');
+
 
 
 end
